@@ -1,4 +1,5 @@
-from flask import Flask, request, jsonify, redirect
+from flask import Flask, jsonify, redirect, request
+
 from src.store import UrlStore
 
 
