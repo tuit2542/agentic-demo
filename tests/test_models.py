@@ -1,5 +1,6 @@
 import pytest
 from pydantic import ValidationError
+
 from src.models import ShortenRequest, ShortenResponse, StatsResponse
 
 
