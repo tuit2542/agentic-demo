@@ -1,40 +1,64 @@
+import pytest
+from httpx import ASGITransport, AsyncClient
+
 from src.app import create_app
 
 
-def test_shorten_returns_201():
-    app = create_app()
-    resp = app.test_client().post("/shorten", json={"url": "https://example.com"})
+@pytest.fixture
+def app():
+    return create_app()
+
+
+@pytest.fixture
+async def client(app):
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as c:
+        yield c
+
+
+@pytest.mark.anyio
+async def test_shorten_returns_201(client):
+    resp = await client.post("/shorten", json={"url": "https://example.com"})
     assert resp.status_code == 201
-    assert "short_id" in resp.json
+    data = resp.json()
+    assert "short_id" in data
+    assert "short_url" in data
 
 
-def test_redirect_moves_to_original():
-    app = create_app()
-    resp = app.test_client().post("/shorten", json={"url": "https://example.com"})
-    sid = resp.json["short_id"]
-    resp2 = app.test_client().get(f"/{sid}", follow_redirects=False)
-    assert resp2.status_code == 302
-    assert resp2.headers["Location"] == "https://example.com"
+@pytest.mark.anyio
+async def test_redirect_moves_to_original(client):
+    resp = await client.post("/shorten", json={"url": "https://example.com"})
+    sid = resp.json()["short_id"]
+    resp2 = await client.get(f"/{sid}", follow_redirects=False)
+    assert resp2.status_code == 307
+    assert resp2.headers["location"] == "https://example.com/"
 
 
-def test_stats_returns_count():
-    app = create_app()
-    client = app.test_client()
-    sid = client.post("/shorten", json={"url": "https://example.com"}).json["short_id"]
-    client.get(f"/{sid}")
-    client.get(f"/{sid}")
-    resp = client.get(f"/stats/{sid}")
+@pytest.mark.anyio
+async def test_stats_returns_count(client):
+    resp = await client.post("/shorten", json={"url": "https://example.com"})
+    sid = resp.json()["short_id"]
+    await client.get(f"/{sid}")
+    await client.get(f"/{sid}")
+    resp = await client.get(f"/stats/{sid}")
     assert resp.status_code == 200
-    assert resp.json["clicks"] == 2
+    data = resp.json()
+    assert data["clicks"] == 2
 
 
-def test_shorten_missing_url_returns_400():
-    app = create_app()
-    resp = app.test_client().post("/shorten", json={})
-    assert resp.status_code == 400
+@pytest.mark.anyio
+async def test_shorten_invalid_url_returns_422(client):
+    resp = await client.post("/shorten", json={"url": "not-a-url"})
+    assert resp.status_code == 422
 
 
-def test_redirect_unknown_returns_404():
-    app = create_app()
-    resp = app.test_client().get("/zzzzzz")
+@pytest.mark.anyio
+async def test_redirect_unknown_returns_404(client):
+    resp = await client.get("/zzzzzz")
+    assert resp.status_code == 404
+
+
+@pytest.mark.anyio
+async def test_stats_unknown_returns_404(client):
+    resp = await client.get("/stats/zzzzzz")
     assert resp.status_code == 404
