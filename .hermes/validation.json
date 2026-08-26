@@ -1,0 +1,16 @@
+{
+  "checks": [
+    {
+      "name": "Lint",
+      "command": "python -m ruff check src/ tests/"
+    },
+    {
+      "name": "Type check",
+      "command": "python -m mypy src/ --ignore-missing-imports"
+    },
+    {
+      "name": "Tests",
+      "command": "python -m pytest tests/ -v"
+    }
+  ]
+}
