@@ -9,7 +9,7 @@
 ### Project
 - **Repo:** https://github.com/tuit2542/agentic-demo
 - **Branch:** main (protected, 2 approvals)
-- **Last commit:** docs split into docs/ folder
+- **Last commit:** chore: improve quality gates
 - **Tags:** v0.1.0, v0.2.0
 
 ### What's Done
@@ -20,7 +20,7 @@
 | 2 | Pydantic models | ✅ |
 | 3 | In-memory store | ✅ |
 | 4 | 16 tests passing | ✅ |
-| 5 | Pre-commit validation (4 checks) | ✅ |
+| 5 | Pre-commit validation (5 checks) | ✅ |
 | 6 | Language-agnostic validation | ✅ |
 | 7 | Spec intake pipeline | ✅ |
 | 8 | Health monitor cron | ✅ |
@@ -33,6 +33,12 @@
 | 15 | Documentation (docs/) | ✅ |
 | 16 | Best practices registry | ✅ |
 | 17 | SOUL.md (global) | ✅ |
+| 18 | Test coverage tracking (98%) | ✅ |
+| 19 | Code format (ruff format) | ✅ |
+| 20 | PR template | ✅ |
+| 21 | CODEOWNERS | ✅ |
+| 22 | Best practices auto-check (CI) | ✅ |
+| 23 | .editorconfig | ✅ |
 
 ### Pending
 
@@ -44,6 +50,19 @@
 | 4 | Custom short ID | 🟡 Medium |
 | 5 | URL expiration | 🟡 Medium |
 | 6 | Click analytics | 🟢 Low |
+
+---
+
+## Quality Gates
+
+| Check | Command | Must Pass |
+|-------|---------|-----------|
+| Lint | `ruff check src/ tests/` | ✅ |
+| Format | `ruff format --check src/ tests/` | ✅ |
+| Type check | `mypy src/ --ignore-missing-imports` | ✅ |
+| Tests | `pytest tests/ -v --cov=src` | ✅ |
+| Security | `pip-audit --desc` | ⚠️ warn-only |
+| Best practices | AST type hint check | ✅ |
 
 ---
 
@@ -107,17 +126,23 @@ cp .hermes/specs/TEMPLATE.md .hermes/specs/bug-fix.md
 ## Key Commands
 
 ```bash
-# Validation
+# Validation (full pipeline)
 python scripts/pre_commit_validate.py
 
-# Spec reader
-python scripts/read_specs.py
+# Tests with coverage
+pytest tests/ -v --cov=src --cov-report=term-missing
+
+# Format code
+ruff format src/ tests/
+
+# Lint
+ruff check src/ tests/
+
+# Type check
+mypy src/ --ignore-missing-imports
 
 # Health check
 python scripts/check_project_health.py
-
-# Tests
-pytest tests/ -v
 
 # GitHub
 "/c/Program Files/GitHub CLI/gh.exe" pr list
