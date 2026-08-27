@@ -11,6 +11,8 @@
 | [API.md](API.md) | API endpoints, models, store | Implementing features |
 | [WORKFLOW.md](WORKFLOW.md) | TDD flow, branching, promotion | Starting new work |
 | [SETUP.md](SETUP.md) | Project setup, GitHub, CI | First time setup |
+| [MULTI_LANGUAGE.md](MULTI_LANGUAGE.md) | Use with other languages | Expanding to new stack |
+| [GITLAB_MIGRATION.md](GITLAB_MIGRATION.md) | GitHub → GitLab migration | Migrating to GitLab |
 | [CHANGELOG.md](CHANGELOG.md) | Version history | Checking what changed |
 | [HANDOFF.md](HANDOFF.md) | Context for new AI session | New AI session |
 | [.hermes.md](../.hermes.md) | Project rules (agent reads this) | Every task |
