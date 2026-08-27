@@ -6,20 +6,22 @@
 
 ## ภาพรวม
 
-ระบบ Agentic Development ที่ครบวงจร — ตั้งแต่รับ requirement จนถึง ship code
-
 ```
-┌─────────────────────────────────────────────────────────┐
-│                  AGENTIC FULL LOOP                       │
-│                                                          │
-│  Spec → Best Practices → Plan → TDD → Validate → Commit  │
-│    │         │              │       │           │         │
-│    │         │              │       │           │         │
-│    ▼         ▼              ▼       ▼           ▼         │
-│  .hermes/  .hermes/      .hermes/  ruff      git         │
-│  specs/    best-         plans/    mypy      commit      │
-│            practices.md            pytest                 │
-└─────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│                     AGENTIC FULL LOOP (Complete)                      │
+│                                                                       │
+│  Spec → Best Practices → Plan → TDD → Validate → Commit → GitHub     │
+│    │         │              │       │           │          │          │
+│    │         │              │       │           │          │          │
+│    ▼         ▼              ▼       ▼           ▼          ▼          │
+│  .hermes/  .hermes/      .hermes/  ruff      git        gh CLI      │
+│  specs/    best-         plans/    mypy      commit     push        │
+│            practices.md            pytest               PR/CI       │
+│                                                                       │
+│  ┌─────────────────────────────────────────────────────────────┐     │
+│  │  MISSING: CI/CD + Branch Protection + Code Review + Coverage│     │
+│  └─────────────────────────────────────────────────────────────┘     │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -30,7 +32,9 @@
 project-root/
 ├── .hermes.md                    ← Project rules (agent auto-load)
 ├── AGENTS.md                     ← Portable agent rules
-├── SOUL.md                       ← Agent identity (global, อยู่ที่ ~/.hermes/)
+├── CHANGELOG.md                  ← Version history (Keep-a-Changelog)
+├── GITHUB_INTEGRATION.md         ← GitHub setup guide
+├── AGENTIC_WORKFLOW.md           ← ไฟล์นี้
 ├── .hermes/
 │   ├── best-practices.md         ← Central best practices registry
 │   ├── validation.json           ← Language-agnostic validation config
@@ -39,12 +43,65 @@ project-root/
 │   │   └── done/                 ← Processed specs
 │   └── plans/                    ← Implementation plans (agent สร้าง)
 ├── scripts/
-│   ├── pre_commit_validate.py    ← Auto-validation pipeline
+│   ├── pre_commit_validate.py    ← Auto-validation pipeline (4 checks)
 │   ├── read_specs.py             ← Spec reader → plan generator
 │   └── check_project_health.py   ← Cron health monitor
+├── .github/workflows/
+│   └── ci.yml                    ← ❌ ยังไม่มี (ต้องสร้าง)
 ├── src/
 ├── tests/
 └── requirements.txt
+```
+
+---
+
+## Current Flow Status
+
+### ✅ ทำแล้ว (100% Local)
+
+| Step | Status | Detail |
+|------|--------|--------|
+| Spec intake | ✅ | `.hermes/specs/` + `read_specs.py` + cron |
+| Best practices | ✅ | `.hermes/best-practices.md` (auto-load) |
+| Plan generation | ✅ | `.hermes/plans/` + `spec-intake` skill |
+| TDD workflow | ✅ | `agentic-full-loop` skill |
+| Pre-commit validation | ✅ | 4 checks: lint + type + test + security |
+| Git commit | ✅ | Conventional commits + auto-validate |
+| GitHub push | ✅ | `gh` CLI authenticated as tuit2542 |
+| Health monitoring | ✅ | Cron job ทุก 30 นาที (continuity) |
+
+### ❌ ยังไม่มี (ต้องสร้าง)
+
+| Step | Status | สำคัญแค่ไหน | วิธีทำ |
+|------|--------|------------|--------|
+| CI/CD pipeline | ❌ | 🔴 สูง | GitHub Actions workflow |
+| Branch protection | ❌ | 🔴 สูง | GitHub settings |
+| PR creation automation | ❌ | 🟡 กลาง | Agent สร้าง PR อัตโนมัติ |
+| Code review automation | ❌ | 🟡 กลาง | `requesting-code-review` skill |
+| Test coverage | ❌ | 🟡 กลาง | pytest-cov + coverage report |
+| Dependency auto-update | ❌ | 🟢 ต่ำ | Dependabot/Renovate |
+
+---
+
+## Flow ที่ต้องการ (Target State)
+
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│                    TARGET: COMPLETE FULL LOOP                         │
+│                                                                       │
+│  Spec → Best Practices → Plan → TDD → Validate → Commit → PR → CI   │
+│    │         │              │       │           │       │      │      │
+│    │         │              │       │           │       │      │      │
+│    ▼         ▼              ▼       ▼           ▼       ▼      ▼      │
+│  .hermes/  .hermes/      .hermes/  4 checks   git    gh     Actions │
+│  specs/    best-         plans/              commit  PR     validate │
+│            practices.md                                         merge  │
+│                                                                       │
+│  Missing pieces:                                                      │
+│  ├── .github/workflows/ci.yml                                        │
+│  ├── Branch protection rules                                         │
+│  └── Auto PR creation skill                                          │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -67,37 +124,14 @@ cp scripts/ /path/to/new-project/scripts/
 ### 2. แปะ Spec File
 
 ```bash
-# Copy template
 cp .hermes/specs/TEMPLATE.md .hermes/specs/my-feature.md
-
 # แก้ไข my-feature.md ตามต้องการ
-```
-
-**ตัวอย่าง spec:**
-```markdown
-# Feature: JWT Authentication
-
-## User Story
-As a developer, I want JWT auth so that API endpoints are secured.
-
-## Requirements
-- [ ] Login endpoint returns JWT token
-- [ ] Middleware validates token on protected routes
-- [ ] Token expires after 24 hours
-
-## Acceptance Criteria
-- [ ] Given valid credentials, when login, then token returned
-- [ ] Given valid token, when access protected route, then 200 OK
-- [ ] Given expired token, when access protected route, then 401 Unauthorized
 ```
 
 ### 3. ให้ Agent Process
 
 ```bash
-# บอก agent
 "process specs"
-
-# หรือ agent จะ auto-detect ผ่าน cron
 ```
 
 Agent จะ:
@@ -111,10 +145,6 @@ Agent จะ:
 
 ```bash
 # Health monitor (cron รันทุก 30 นาที)
-# ดู output ล่าสุด
-cat D:\Users\pongsathornb\AppData\Local\hermes\cron\output\e1deadafefd4\*.md
-
-# หรือรัน manual
 python scripts/check_project_health.py
 ```
 
@@ -122,58 +152,23 @@ python scripts/check_project_health.py
 
 ## Language Support
 
-### Auto-Detect
-
-`validation.json` auto-detect language จากไฟล์ใน project:
-
 | Language | Detect Pattern | Commands |
 |----------|---------------|----------|
-| Python | `*.py`, `requirements.txt` | ruff, mypy, pytest |
-| JavaScript | `*.js`, `package.json` | eslint, tsc, npm test |
-| TypeScript | `*.ts`, `tsconfig.json` | eslint, tsc, npm test |
-| Rust | `Cargo.toml` | clippy, cargo check, cargo test |
-| Go | `go.mod` | golangci-lint, go vet, go test |
-
-### เปลี่ยน Stack
-
-แก้ `.hermes/validation.json`:
-
-```json
-{
-  "language_configs": {
-    "python": {
-      "detect": ["*.py"],
-      "lint": "python -m ruff check src/",
-      "type_check": "python -m mypy src/",
-      "test": "python -m pytest tests/ -v"
-    }
-  }
-}
-```
+| Python | `*.py`, `requirements.txt` | ruff, mypy, pytest, pip-audit |
+| JavaScript | `*.js`, `package.json` | eslint, tsc, npm test, npm audit |
+| TypeScript | `*.ts`, `tsconfig.json` | eslint, tsc, npm test, npm audit |
+| Rust | `Cargo.toml` | clippy, cargo check, cargo test, cargo audit |
+| Go | `go.mod` | golangci-lint, go vet, go test, govulncheck |
 
 ---
 
 ## Best Practices Rules
 
-### Auto-Load Flow
-
-```
-Agent start
-    ↓
-Read .hermes.md
-    ↓
-Read .hermes/best-practices.md
-    ↓
-Load language-specific rules
-    ↓
-Start task
-```
-
 ### Core Principles (ทุก language)
 
 1. **TDD is non-negotiable** — test first, then implement
 2. **Type safety** — type hints on all public functions
-3. **Validate before commit** — lint + type check + test
+3. **Validate before commit** — lint + type check + test + security
 4. **Small focused changes** — one feature per commit
 5. **Defensive coding** — handle errors explicitly
 
@@ -184,28 +179,20 @@ Start task
 | Lint | Before commit | ✅ |
 | Type check | Before commit | ✅ |
 | Tests | Before commit | ✅ |
+| Security | Before commit | ⚠️ warn-only |
 
 ---
 
 ## Cron Jobs
 
-### Active Jobs
-
 | Job ID | Name | Schedule | Feature |
 |--------|------|----------|---------|
 | `e1deadafefd4` | project-health-monitor | every 30m | continuity |
-
-### Continuity
-
-Cron job จำ output เก่าไว้ เปรียบเทียบกับ run ถัดไป:
-- Run 1: `{"src_files": 4}`
-- Run 2: `{"src_files": 5}` → agent เห็นว่าเพิ่มมา 1 file
+| `7eb8fde941a9` | spec-intake-monitor | every 10m | continuity |
 
 ---
 
 ## Skills
-
-### ตัวที่สร้างแล้ว
 
 | Skill | หน้าที่ | ใช้เมื่อไหร่ |
 |-------|--------|-------------|
@@ -216,53 +203,6 @@ Cron job จำ output เก่าไว้ เปรียบเทียบ�
 | `requesting-code-review` | Independent review | ก่อน commit |
 | `systematic-debugging` | Root cause analysis | bug แก้ไม่หาย |
 | `github-pr-workflow` | PR lifecycle | push ขึ้น GitHub |
-
-### วิธีใช้ Skill
-
-```python
-# Auto-detect (agent scan skills แล้วเลือกเอง)
-"implement auth feature"
-
-# Manual load
-skill_view(name="agentic-full-loop")
-
-# ใน delegate_task
-delegate_task(
-    goal="Implement auth module",
-    context="Follow agentic-full-loop skill"
-)
-```
-
----
-
-## ข้อแนะนำเพิ่มเติม (Recommendations)
-
-### 🔴 Priority สูง — ควรทำเร็วๆ นี้
-
-| # | สิ่งที่ควรทำ | ทำไม | วิธีทำ |
-|---|------------|------|--------|
-| 1 | **ตั้ง GitHub auth** | push ขึ้น remote ได้ | ใช้ `github-auth` skill |
-| 2 | **เพิ่ม CHANGELOG.md** | track version history | สร้างไฟล์ + ปรับ git hook |
-| 3 | **ตั้ง cron spec-intake** | auto-process specs ทุก 10 นาที | `cronjob(action="create")` |
-| 4 | **เพิ่ม security scan** | scan vulnerabilities ก่อน release | เพิ่ม command ใน validation.json |
-
-### 🟡 Priority กลาง — ควรทำเร็วๆ นี้
-
-| # | สิ่งที่ควรทำ | ทำไม | วิธีทำ |
-|---|------------|------|--------|
-| 5 | **เพิ่ม ADR** | record architecture decisions | สร้าง `.hermes/adr/` |
-| 6 | **ตั้ง branch protection** | ป้องกัน push ตรง main | GitHub settings |
-| 7 | **เพิ่ม CI/CD** | auto-validate บน cloud | GitHub Actions workflow |
-| 8 | **Monitor performance** | track test coverage | เพิ่ม coverage report |
-
-### 🟢 Priority ต่ำ — ทำเมื่อมีเวลา
-
-| # | สิ่งที่ควรทำ | ทำไม | วิธีทำ |
-|---|------------|------|--------|
-| 9 | **Multi-agent orchestration** | parallel development | delegate_task + agent teams |
-| 10 | **Documentation site** | share knowledge | MkDocs หรือ Docusaurus |
-| 11 | **Dependency scanning** | auto-update deps | Dependabot หรือ Renovate |
-| 12 | **Performance profiling** | optimize bottlenecks | cProfile, py-spy |
 
 ---
 
@@ -276,7 +216,9 @@ delegate_task(
 3. Agent สร้าง plan
 4. Agent ลุย TDD
 5. Pre-commit hook validate
-6. Commit + tag
+6. Commit + push
+7. ❌ สร้าง PR (ยังไม่มี)
+8. ❌ CI validate (ยังไม่มี)
 ```
 
 ### Template 2: Bug Fix
@@ -287,7 +229,7 @@ delegate_task(
 3. Agent ใช้ systematic-debugging skill
 4. Agent สร้าง regression test
 5. Agent แก้ bug
-6. Validate → Commit
+6. Validate → Commit → Push
 ```
 
 ### Template 3: Refactor
@@ -296,8 +238,8 @@ delegate_task(
 1. บอก agent: "refactor module X"
 2. Agent ใช้ simplify-code skill
 3. Agent สร้าง plan
-4. Agent refactor ทีละจุด ( tests pass ตลอด)
-5. Validate → Commit
+4. Agent refactor ทีละจุด (tests pass ตลอด)
+5. Validate → Commit → Push
 ```
 
 ### Template 4: Code Review
@@ -307,14 +249,14 @@ delegate_task(
 2. Agent ใช้ requesting-code-review skill
 3. Agent report findings
 4. Agent แก้ไขถ้ามี issues
-5. Validate → Commit
+5. Validate → Commit → Push
 ```
 
 ---
 
 ## Quick Reference
 
-### Commands ที่ใช้บ่อย
+### Commands
 
 ```bash
 # Validation
@@ -334,6 +276,11 @@ ruff check src/ tests/
 
 # Type check
 mypy src/ --ignore-missing-imports
+
+# GitHub
+"/c/Program Files/GitHub CLI/gh.exe" repo list
+"/c/Program Files/GitHub CLI/gh.exe" pr list
+"/c/Program Files/GitHub CLI/gh.exe" run list
 ```
 
 ### Agent Instructions
@@ -353,22 +300,9 @@ mypy src/ --ignore-missing-imports
 
 # Refactor
 "refactor [module name]"
-```
 
-### Cron Management
-
-```bash
-# List jobs
-cronjob(action="list")
-
-# Run manual
-cronjob(action="run", job_id="e1deadafefd4")
-
-# Pause
-cronjob(action="pause", job_id="e1deadafefd4")
-
-# Resume
-cronjob(action="resume", job_id="e1deadafefd4")
+# Create PR
+"create PR for recent changes"
 ```
 
 ---
@@ -378,10 +312,11 @@ cronjob(action="resume", job_id="e1deadafefd4")
 | Problem | Solution |
 |---------|----------|
 | Spec not detected | Check file is in `.hermes/specs/` and not `done/` |
-| Validation fails | Run `python scripts/pre_commit_validate.py` to see which step fails |
+| Validation fails | Run `python scripts/pre_commit_validate.py` |
 | Cron not firing | Check `hermes gateway status` |
 | Script not found | Copy script to `~/.hermes/scripts/` |
 | Language not detected | Add detect patterns in `validation.json` |
+| gh not found | Use full path: `/c/Program Files/GitHub CLI/gh.exe` |
 
 ---
 
@@ -394,4 +329,4 @@ cronjob(action="resume", job_id="e1deadafefd4")
 
 ---
 
-*Last updated: 2026-08-26*
+*Last updated: 2026-08-27*
