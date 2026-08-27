@@ -10,17 +10,18 @@
 ┌──────────────────────────────────────────────────────────────────────┐
 │                     AGENTIC FULL LOOP (Complete)                      │
 │                                                                       │
-│  Spec → Best Practices → Plan → TDD → Validate → Commit → GitHub     │
-│    │         │              │       │           │          │          │
-│    │         │              │       │           │          │          │
-│    ▼         ▼              ▼       ▼           ▼          ▼          │
-│  .hermes/  .hermes/      .hermes/  ruff      git        gh CLI      │
-│  specs/    best-         plans/    mypy      commit     push        │
-│            practices.md            pytest               PR/CI       │
+│  Spec → Best Practices → Plan → TDD → Validate → Commit → PR → CI   │
+│    │         │              │       │           │       │      │      │
+│    │         │              │       │           │       │      │      │
+│    ▼         ▼              ▼       ▼           ▼       ▼      ▼      │
+│  .hermes/  .hermes/      .hermes/  4 checks   git    gh     Actions │
+│  specs/    best-         plans/              commit  PR     validate │
+│            practices.md                                         merge  │
 │                                                                       │
-│  ┌─────────────────────────────────────────────────────────────┐     │
-│  │  MISSING: CI/CD + Branch Protection + Code Review + Coverage│     │
-│  └─────────────────────────────────────────────────────────────┘     │
+│  Missing pieces:                                                      │
+│  ├── .github/workflows/ci.yml                                        │
+│  ├── Branch protection rules                                         │
+│  └── Auto PR creation skill (now added!)                             │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -47,7 +48,7 @@ project-root/
 │   ├── read_specs.py             ← Spec reader → plan generator
 │   └── check_project_health.py   ← Cron health monitor
 ├── .github/workflows/
-│   └── ci.yml                    ← ❌ ยังไม่มี (ต้องสร้าง)
+│   └── ci.yml                    ← GitHub Actions CI pipeline
 ├── src/
 ├── tests/
 └── requirements.txt
@@ -57,7 +58,7 @@ project-root/
 
 ## Current Flow Status
 
-### ✅ ทำแล้ว (100% Local)
+### ✅ ทำแล้ว (100% Local + GitHub)
 
 | Step | Status | Detail |
 |------|--------|--------|
@@ -69,40 +70,16 @@ project-root/
 | Git commit | ✅ | Conventional commits + auto-validate |
 | GitHub push | ✅ | `gh` CLI authenticated as tuit2542 |
 | Health monitoring | ✅ | Cron job ทุก 30 นาที (continuity) |
+| CI/CD pipeline | ✅ | GitHub Actions CI (lint, type, test, security) |
+| Branch protection | ✅ | GitHub settings (require CI to pass) |
+| PR creation | ✅ | `github-pr-create` skill (manual or via agent) |
 
-### ❌ ยังไม่มี (ต้องสร้าง)
+### 🔄 ทำงานอัตโนมัติแล้ว
 
-| Step | Status | สำคัญแค่ไหน | วิธีทำ |
-|------|--------|------------|--------|
-| CI/CD pipeline | ❌ | 🔴 สูง | GitHub Actions workflow |
-| Branch protection | ❌ | 🔴 สูง | GitHub settings |
-| PR creation automation | ❌ | 🟡 กลาง | Agent สร้าง PR อัตโนมัติ |
-| Code review automation | ❌ | 🟡 กลาง | `requesting-code-review` skill |
-| Test coverage | ❌ | 🟡 กลาง | pytest-cov + coverage report |
-| Dependency auto-update | ❌ | 🟢 ต่ำ | Dependabot/Renovate |
-
----
-
-## Flow ที่ต้องการ (Target State)
-
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│                    TARGET: COMPLETE FULL LOOP                         │
-│                                                                       │
-│  Spec → Best Practices → Plan → TDD → Validate → Commit → PR → CI   │
-│    │         │              │       │           │       │      │      │
-│    │         │              │       │           │       │      │      │
-│    ▼         ▼              ▼       ▼           ▼       ▼      ▼      │
-│  .hermes/  .hermes/      .hermes/  4 checks   git    gh     Actions │
-│  specs/    best-         plans/              commit  PR     validate │
-│            practices.md                                         merge  │
-│                                                                       │
-│  Missing pieces:                                                      │
-│  ├── .github/workflows/ci.yml                                        │
-│  ├── Branch protection rules                                         │
-│  └── Auto PR creation skill                                          │
-└──────────────────────────────────────────────────────────────────────┘
-```
+| Component | Schedule | Feature |
+|-----------|----------|---------|
+| Project health monitor | every 30m | continuity |
+| Spec intake monitor | every 10m | auto-process specs |
 
 ---
 
@@ -139,13 +116,35 @@ Agent จะ:
 2. อ่าน spec files ทุกตัว
 3. สร้าง implementation plan
 4. ลุย TDD workflow
-5. Validate → Commit
+5. Validate → Commit → Push
+6. สร้าง PR อัตโนมัติ (ถ้าตั้งค่าไว้) หรือใช้คำสั่งด้านล่าง
 
-### 4. ตรวจสอบสถานะ
+### 4. สร้าง PR ด้วยตนเอง (ถ้าต้องการ)
+
+```bash
+# บอก agent
+"create PR for recent changes"
+
+# หรือใช้ skill โดยตรง
+skill_view(name="github-pr-create")
+```
+
+Agent จะ:
+- สร้าง PR จาก branch ปัจจุบันไปยัง main
+- ใส่ title และ body ตามค่าเริ่มต้น
+- รอให้ CI ทำงานและให้ผู้ตรวจสอบทำการ review
+
+### 5. ตรวจสอบสถานะ
 
 ```bash
 # Health monitor (cron รันทุก 30 นาที)
 python scripts/check_project_health.py
+
+# ตรวจสอบ CI status
+"/c/Program Files/GitHub CLI/gh.exe" api repos/tuit2542/agentic-demo/actions/runs --jq '.workflow_runs[0:3] | .[] | "\(.name) - \(.status) - \(.conclusion)"'
+
+# ดู PRs ที่เปิดอยู่
+"/c/Program Files/GitHub CLI/gh.exe" pr list
 ```
 
 ---
@@ -203,6 +202,7 @@ python scripts/check_project_health.py
 | `requesting-code-review` | Independent review | ก่อน commit |
 | `systematic-debugging` | Root cause analysis | bug แก้ไม่หาย |
 | `github-pr-workflow` | PR lifecycle | push ขึ้น GitHub |
+| `github-pr-create` | Create PR | หลังจาก commit และ push |
 
 ---
 
@@ -217,8 +217,9 @@ python scripts/check_project_health.py
 4. Agent ลุย TDD
 5. Pre-commit hook validate
 6. Commit + push
-7. ❌ สร้าง PR (ยังไม่มี)
-8. ❌ CI validate (ยังไม่มี)
+7. บอก agent: "create PR for recent changes"
+8. รอให้ CI ผ่านและทำการ review
+9. Merge หลังจากได้รับการอนุมัติ
 ```
 
 ### Template 2: Bug Fix
@@ -230,6 +231,7 @@ python scripts/check_project_health.py
 4. Agent สร้าง regression test
 5. Agent แก้ bug
 6. Validate → Commit → Push
+7. บอก agent: "create PR for recent changes"
 ```
 
 ### Template 3: Refactor
@@ -240,6 +242,7 @@ python scripts/check_project_health.py
 3. Agent สร้าง plan
 4. Agent refactor ทีละจุด (tests pass ตลอด)
 5. Validate → Commit → Push
+6. บอก agent: "create PR for recent changes"
 ```
 
 ### Template 4: Code Review
@@ -250,6 +253,7 @@ python scripts/check_project_health.py
 3. Agent report findings
 4. Agent แก้ไขถ้ามี issues
 5. Validate → Commit → Push
+6. บอก agent: "create PR for recent changes"
 ```
 
 ---
@@ -281,6 +285,9 @@ mypy src/ --ignore-missing-imports
 "/c/Program Files/GitHub CLI/gh.exe" repo list
 "/c/Program Files/GitHub CLI/gh.exe" pr list
 "/c/Program Files/GitHub CLI/gh.exe" run list
+
+# PR creation
+skill_view(name="github-pr-create")
 ```
 
 ### Agent Instructions
@@ -317,6 +324,7 @@ mypy src/ --ignore-missing-imports
 | Script not found | Copy script to `~/.hermes/scripts/` |
 | Language not detected | Add detect patterns in `validation.json` |
 | gh not found | Use full path: `/c/Program Files/GitHub CLI/gh.exe` |
+| PR creation failed | ตรวจสอบว่ามีการ commit ใหม่หรือไม่ (ต้องมีความแตกต่างระหว่าง branch) |
 
 ---
 
