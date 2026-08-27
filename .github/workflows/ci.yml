@@ -22,15 +22,42 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install pytest-cov
 
       - name: Lint
         run: python -m ruff check src/ tests/
 
+      - name: Format check
+        run: python -m ruff format --check src/ tests/
+
       - name: Type check
         run: python -m mypy src/ --ignore-missing-imports
 
-      - name: Tests
-        run: python -m pytest tests/ -v
+      - name: Tests with coverage
+        run: python -m pytest tests/ -v --cov=src --cov-report=term-missing --cov-report=xml
+
+      - name: Best practices check
+        run: |
+          echo "Checking best practices compliance..."
+          python -c "
+          import ast, sys
+          errors = []
+          for f in ['src/app.py', 'src/models.py', 'src/store.py']:
+              with open(f) as fh:
+                  tree = ast.parse(fh.read())
+              for node in ast.walk(tree):
+                  if isinstance(node, ast.FunctionDef):
+                      # Check type hints
+                      if node.returns is None and not node.name.startswith('_'):
+                          errors.append(f'{f}:{node.lineno} {node.name}() missing return type')
+          if errors:
+              print('❌ Best practices violations:')
+              for e in errors:
+                  print(f'  - {e}')
+              sys.exit(1)
+          else:
+              print('✅ Best practices passed')
+          "
 
       - name: Security scan
         run: python -m pip-audit --desc || true

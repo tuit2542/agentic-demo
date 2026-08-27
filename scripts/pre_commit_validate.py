@@ -102,6 +102,7 @@ def main() -> int:
 
     checks = [
         ("Lint", lang_config.get("lint")),
+        ("Format", lang_config.get("format_check")),
         ("Type check", lang_config.get("type_check")),
         ("Tests", lang_config.get("test")),
         ("Security", lang_config.get("security")),
