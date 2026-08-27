@@ -1,25 +1,21 @@
-# URL Shortener API
+# Agentic Demo
 
-## Overview
-Simple in-memory URL shortener demonstrating Agentic Full-Loop Engineering.
+This is a demonstration of agentic full-loop engineering.
 
-## Quick Start
-```bash
-pip install -r requirements.txt
-python -m pytest
-python src/main.py
-```
+## Features
 
-## API Endpoints
-- `POST /shorten` — Create short URL from long URL
-- `GET /<short_id>` — Redirect to original URL
-- `GET /stats/<short_id>` — View click count
+- URL shortener API
+- FastAPI backend
+- Pydantic v2 validation
+- MyPy type checking
+- Ruff linting
+- Pytest testing
+- Pre-commit validation
+- Spec intake pipeline
+- Health monitor cron job
+- GitHub Actions CI
+- Branch protection
 
-## Development
-This project demonstrates the full agentic development loop:
-1. Plan (`.hermes/plans/`)
-2. Implement (TDD)
-3. Review (pre-commit verification)
-4. Debug (systematic debugging)
-5. CI/CD (GitHub PR workflow)
-6. Ship (merge + monitor)
+## Getting Started
+
+See the documentation in the `.hermes/` folder.
