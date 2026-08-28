@@ -1,0 +1,23 @@
+# Code Owners
+# กำหนดว่าใครดูแลไฟล์ไหน (auto-assign reviewer)
+
+# Default owner for everything
+* @tuit2542
+
+# Source code
+src/ @tuit2542
+
+# Tests
+tests/ @tuit2542
+
+# CI/CD
+.github/ @tuit2542
+
+# Documentation
+docs/ @tuit2542
+*.md @tuit2542
+
+# Agent config
+.hermes/ @tuit2542
+.hermes.md @tuit2542
+AGENTS.md @tuit2542
