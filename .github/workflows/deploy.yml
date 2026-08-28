@@ -1,0 +1,58 @@
+name: Deploy
+
+on:
+  push:
+    branches: [dev, qa, sit, uat, main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: python -m pytest tests/ -v
+
+      - name: Deploy to environment
+        env:
+          ENVIRONMENT: ${{ github.ref_name }}
+        run: |
+          echo "========================================="
+          echo "  Deploying to: $ENVIRONMENT"
+          echo "========================================="
+          
+          case "$ENVIRONMENT" in
+            dev)
+              echo "Deploying to Dev Server..."
+              # เพิ่ม deploy command สำหรับ dev
+              # ssh user@dev-server "cd /app && git pull && systemctl restart app"
+              ;;
+            qa)
+              echo "Deploying to QA Server..."
+              # เพิ่ม deploy command สำหรับ qa
+              ;;
+            sit)
+              echo "Deploying to SIT Server..."
+              # เพi่ม deploy command สำหรับ sit
+              ;;
+            uat)
+              echo "Deploying to UAT Server..."
+              # เพิ่ม deploy command สำหรับ uat
+              ;;
+            main)
+              echo "Deploying to Production..."
+              # เพิ่ม deploy command สำหรับ production
+              ;;
+          esac
+          
+          echo "✅ Deploy to $ENVIRONMENT completed"
