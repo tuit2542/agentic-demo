@@ -4,6 +4,10 @@ on:
   push:
     branches: [dev, qa, sit, uat]
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   promote:
     runs-on: ubuntu-latest
@@ -26,10 +30,10 @@ jobs:
         run: |
           NEXT="${{ steps.env.outputs.next }}"
           CURRENT="${{ github.ref_name }}"
-          
+
           # Check if PR already exists
           EXISTING=$(gh pr list --base "$NEXT" --head "$CURRENT" --state open --json number --jq '.[0].number')
-          
+
           if [ -n "$EXISTING" ]; then
             echo "PR #$EXISTING already exists for $CURRENT → $NEXT"
           else
