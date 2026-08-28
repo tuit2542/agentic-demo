@@ -8,9 +8,9 @@ class UrlStore:
         self._clicks: dict[str, int] = {}
 
     def shorten(self, url: str) -> str:
-        sid = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
+        sid = "".join(random.choices(string.ascii_letters + string.digits, k=6))
         while sid in self._urls:
-            sid = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
+            sid = "".join(random.choices(string.ascii_letters + string.digits, k=6))
         self._urls[sid] = url
         self._clicks[sid] = 0
         return sid

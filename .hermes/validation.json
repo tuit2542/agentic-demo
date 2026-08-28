@@ -8,9 +8,11 @@
       ],
       "lint": "python -m ruff check src/ tests/",
       "lint_fix": "python -m ruff check --fix src/ tests/",
+      "format": "python -m ruff format src/ tests/",
+      "format_check": "python -m ruff format --check src/ tests/",
       "type_check": "python -m mypy src/ --ignore-missing-imports",
-      "test": "python -m pytest tests/ -v",
-      "security": "python -m pip-audit --desc || true"
+      "test": "python -m pytest tests/ -v --cov=src --cov-report=term-missing",
+      "security": "python -m pip_audit --desc || true"
     },
     "javascript": {
       "detect": [
