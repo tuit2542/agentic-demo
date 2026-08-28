@@ -108,6 +108,11 @@ def main() -> int:
         ("Security", lang_config.get("security")),
     ]
 
+    # Add changelog check if scripts/check_changelog.py exists
+    changelog_script = Path.cwd() / "scripts" / "check_changelog.py"
+    if changelog_script.exists():
+        checks.append(("Changelog", f"python {changelog_script}"))
+
     results = []
     for name, cmd in checks:
         if cmd:
