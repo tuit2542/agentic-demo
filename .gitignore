@@ -1,8 +1,28 @@
+# Python
 .venv/
 __pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 *.pyc
 .pytest_cache/
 *.egg-info/
 dist/
 build/
+.coverage
+*.xml
+
+# Node
+node_modules/
+dist/
+
+# Environment
 .env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

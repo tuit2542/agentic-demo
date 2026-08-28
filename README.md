@@ -1,21 +1,70 @@
-# Agentic Demo
+# Agentic Demo — Monorepo
 
-This is a demonstration of agentic full-loop engineering.
+## Structure
+```
+├── backend/           ← Python FastAPI
+│   ├── src/
+│   ├── tests/
+│   ├── scripts/
+│   └── requirements.txt
+├── frontend/          ← Next.js 16 + React 19 + TypeScript
+│   ├── src/
+│   │   ├── app/       ← App Router pages
+│   │   ├── components/
+│   │   ├── types/
+│   │   ├── lib/       ← API clients
+│   │   └── __tests__/
+│   └── package.json
+├── docs/              ← Documentation
+├── .hermes/           ← Agent config
+├── .hermes.md         ← Project rules
+├── AGENTS.md          ← Agent instructions
+└── docker-compose.yml
+```
 
-## Features
+## Quick Start
 
-- URL shortener API
-- FastAPI backend
-- Pydantic v2 validation
-- MyPy type checking
-- Ruff linting
-- Pytest testing
-- Pre-commit validation
-- Spec intake pipeline
-- Health monitor cron job
-- GitHub Actions CI
-- Branch protection
+### Backend
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn src.app:app --reload
+```
 
-## Getting Started
+### Frontend
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-See the documentation in the `.hermes/` folder.
+## Commands
+
+### Backend
+| Command | Description |
+|---------|-------------|
+| `cd backend && python -m pytest tests/ -v` | Run tests |
+| `cd backend && python scripts/pre_commit_validate.py` | Validate |
+| `cd backend && ruff check src/ tests/` | Lint |
+| `cd backend && mypy src/ --ignore-missing-imports` | Type check |
+
+### Frontend
+| Command | Description |
+|---------|-------------|
+| `cd frontend && npm run dev` | Dev server |
+| `cd frontend && npm run build` | Build |
+| `cd frontend && npm run test` | Test |
+| `cd frontend && npm run lint` | Lint |
+| `cd frontend && npx tsc --noEmit` | Type check |
+
+## Tech Stack
+
+| Layer | Tech |
+|-------|------|
+| Backend | Python 3.11, FastAPI, Pydantic v2 |
+| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS |
+| Testing | pytest (backend), Vitest (frontend) |
+| Linting | ruff (backend), ESLint (frontend) |
+| Type check | mypy (backend), TypeScript (frontend) |
