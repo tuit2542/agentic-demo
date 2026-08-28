@@ -40,3 +40,10 @@ After completing any task, update relevant docs in `docs/`:
 3. **docs/HANDOFF.md** — Current state, pending items
 4. **docs/WORKFLOW.md** — Flow/branching changes
 5. **docs/INDEX.md** — Diagram changes
+
+### ⚠️ Changelog Rule (ENFORCED BY CI)
+- Every `feat:` or `fix:` commit MUST have a changelog entry
+- Add entry under `## [Unreleased]` in `CHANGELOG.md`
+- Format: `- Description of change`
+- Run `python scripts/check_changelog.py` to verify
+- Commit WILL FAIL if changelog not updated (validation pipeline blocks it)
