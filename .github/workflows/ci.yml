@@ -7,8 +7,11 @@ on:
     branches: [main, dev, qa, sit, uat]
 
 jobs:
-  CI:
+  backend:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
 
     steps:
       - uses: actions/checkout@v4
@@ -47,7 +50,6 @@ jobs:
                   tree = ast.parse(fh.read())
               for node in ast.walk(tree):
                   if isinstance(node, ast.FunctionDef):
-                      # Check type hints
                       if node.returns is None and not node.name.startswith('_'):
                           errors.append(f'{f}:{node.lineno} {node.name}() missing return type')
           if errors:
@@ -61,3 +63,32 @@ jobs:
 
       - name: Security scan
         run: python -m pip-audit --desc || true
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Tests
+        run: npm run test
+
+      - name: Build
+        run: npm run build
