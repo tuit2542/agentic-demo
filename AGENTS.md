@@ -40,8 +40,6 @@ After completing any task, update relevant docs in `docs/`:
 3. **docs/HANDOFF.md** — Current state, pending items
 4. **docs/WORKFLOW.md** — Flow/branching changes
 5. **docs/INDEX.md** — Diagram changes
-6. **docs/ERROR_HANDLING.md** — If error handling pattern changes
-7. **docs/DATABASE_SCHEMA.md** — If data layer changes
 
 ### ⚠️ Changelog Rule (ENFORCED BY CI)
 - Every `feat:` or `fix:` commit MUST have a changelog entry
@@ -49,23 +47,3 @@ After completing any task, update relevant docs in `docs/`:
 - Format: `- Description of change`
 - Run `python scripts/check_changelog.py` to verify
 - Commit WILL FAIL if changelog not updated (validation pipeline blocks it)
-
-## Feature Spec Template
-When starting a new feature, copy `.hermes/specs/TEMPLATE.md` and fill in:
-- User Story + Acceptance Criteria (Given/When/Then format)
-- UI Mockup (paste image path — AI follows layout)
-- API Contract + Pydantic Models
-- Store Changes + Files to Modify
-- TDD Checklist
-
-## Error Handling Rules
-- Always use `HTTPException` with `detail` field
-- Status codes: 200, 201, 307, 404, 422, 429, 500
-- Never expose internals in responses
-- Test all error paths
-- Reference: `docs/ERROR_HANDLING.md`
-
-## Database Schema
-- Current: In-memory dict (see `src/store.py`)
-- Future: SQLite → PostgreSQL (see `docs/DATABASE_SCHEMA.md`)
-- Store must implement `BaseStore` interface
