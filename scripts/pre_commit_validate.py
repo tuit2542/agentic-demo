@@ -102,10 +102,16 @@ def main() -> int:
 
     checks = [
         ("Lint", lang_config.get("lint")),
+        ("Format", lang_config.get("format_check")),
         ("Type check", lang_config.get("type_check")),
         ("Tests", lang_config.get("test")),
         ("Security", lang_config.get("security")),
     ]
+
+    # Add changelog check if scripts/check_changelog.py exists
+    changelog_script = Path.cwd() / "scripts" / "check_changelog.py"
+    if changelog_script.exists():
+        checks.append(("Changelog", f"python {changelog_script}"))
 
     results = []
     for name, cmd in checks:
