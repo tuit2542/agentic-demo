@@ -6,10 +6,12 @@
 
 ## Before You Start
 
+- [ ] อ่าน `AGENTS.md` (agent rules + commands)
 - [ ] อ่าน `.hermes.md` (project rules)
-- [ ] อ่าน `AGENTS.md` (agent instructions)
+- [ ] อ่าน `backend/.hermes.md` (backend-specific rules)
+- [ ] อ่าน `frontend/.hermes.md` (frontend-specific rules)
 - [ ] อ่าน `docs/ERROR_HANDLING.md` (error patterns)
-- [ ] อ่าน `docs/DATABASE_SCHEMA.md` (data layer)
+- [ ] อ่าน `docs/DATABASE_SCHEMA.md` (data layer — current: in-memory dict)
 - [ ] Copy `.hermes/specs/TEMPLATE.md` → `.hermes/specs/<feature-name>.md`
 - [ ] เติม spec: User Story, Acceptance Criteria, UI Mockup, API Contract
 
@@ -23,13 +25,13 @@
 ## Validation (ก่อน commit)
 
 - [ ] Backend: `cd backend && python scripts/pre_commit_validate.py`
-- [ ] Frontend: `cd frontend && npm run lint && npx tsc --noEmit && npm run test`
+- [ ] Frontend: `cd frontend && python scripts/validate.py`
 
 ## Documentation (หลัง implement)
 
-- [ ] Update `docs/API.md` (ถ้ามี endpoint ใหม่)
-- [ ] Update `docs/CHANGELOG.md` (under [Unreleased])
-- [ ] Update `docs/HANDOFF.md` (current state)
+- [ ] Update `docs/API.md` — add row to Endpoints table + example
+- [ ] Update `docs/CHANGELOG.md` — add bullet under `[Unreleased]`
+- [ ] Update `docs/HANDOFF.md` — update What's Done table
 
 ## Commit & Push
 

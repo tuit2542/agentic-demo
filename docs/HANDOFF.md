@@ -31,16 +31,20 @@
 | 13 | Docker + docker-compose | ✅ |
 | 14 | Documentation (docs/) | ✅ |
 | 15 | AI tracking checklist | ✅ |
+| 16 | Configurable CORS + base URL | ✅ |
+| 17 | Frontend validation script | ✅ |
 
 ### Pending
-| # | Feature | Priority |
-|---|---------|----------|
-| 1 | SQLite/PostgreSQL storage | 🔴 High |
-| 2 | Rate limiting | 🔴 High |
-| 3 | JWT authentication | 🟡 Medium |
-| 4 | Custom short ID | 🟡 Medium |
-| 5 | URL expiration | 🟡 Medium |
-| 6 | Click analytics | 🟢 Low |
+| # | Feature | Priority | Spec |
+|---|---------|----------|------|
+| 1 | SQLite/PostgreSQL storage | 🔴 High | ยังไม่มี spec |
+| 2 | Rate limiting | 🔴 High | ยังไม่มี spec |
+| 3 | JWT authentication | 🟡 Medium | ยังไม่มี spec |
+| 4 | Custom short ID | 🟡 Medium | ยังไม่มี spec |
+| 5 | URL expiration | 🟡 Medium | ยังไม่มี spec |
+| 6 | Click analytics | 🟢 Low | ยังไม่มี spec |
+
+> ยังไม่มี feature spec สำหรับ pending items — สร้างจาก `.hermes/specs/TEMPLATE.md`
 
 ---
 
@@ -116,6 +120,8 @@ git checkout -b fix/my-bug
 4. `docs/DATABASE_SCHEMA.md` — Data layer
 5. `docs/API.md` — API reference
 6. `.hermes/specs/TEMPLATE.md` — Spec template
+7. `backend/.hermes.md` — Backend-specific rules
+8. `frontend/.hermes.md` — Frontend-specific rules
 
 ---
 

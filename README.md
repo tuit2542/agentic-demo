@@ -23,14 +23,9 @@ Monorepo สำหรับ demo ว่า AI agent สามารถทำ ful
 ## Quick Start
 
 ### ใช้ Docker
-
 ```bash
 docker-compose up --build
 ```
-
-- Frontend: http://localhost:3000
-- Backend: http://localhost:8000
-- API Docs: http://localhost:8000/docs
 
 ### ใช้ Manual
 
@@ -38,7 +33,12 @@ docker-compose up --build
 ```bash
 cd backend
 python -m venv .venv
-.venv/Scripts/pip install -r requirements.txt
+# Linux/Mac:
+source .venv/bin/activate
+# Windows:
+.venv/Scripts/activate
+
+pip install -r requirements.txt
 python -m uvicorn src.app:create_app --factory --reload
 ```
 

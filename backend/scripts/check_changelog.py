@@ -10,7 +10,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-CHANGELOG_FILES = ["CHANGELOG.md", "docs/CHANGELOG.md"]
+CHANGELOG_FILES = ["docs/CHANGELOG.md"]
 
 
 def run(cmd: str) -> str:

@@ -50,7 +50,7 @@
 | Gate | Backend | Frontend |
 |------|---------|----------|
 | Lint | ruff ✅ | ESLint ✅ |
-| Format | ruff format ✅ | Prettier (if added) |
+| Format | ruff format ✅ | - (not configured) |
 | Type check | mypy ✅ | tsc ✅ |
 | Tests | pytest ✅ | Vitest ✅ |
 | Security | pip-audit ⚠️ | npm audit ⚠️ |
@@ -72,24 +72,21 @@ When starting a new feature, copy `.hermes/specs/TEMPLATE.md` and fill in:
 
 ## Database Schema
 - Current: In-memory dict (see `backend/src/store.py`)
+- BaseStore interface methods: `shorten(url)`, `resolve(short_id)`, `stats(short_id)`
 - Future: SQLite → PostgreSQL (see `docs/DATABASE_SCHEMA.md`)
-- Store must implement `BaseStore` interface
 
 ## Auto-Update Documentation
 After completing any task, update relevant docs in `docs/`:
-1. **API.md** — New API endpoints, models, store methods
-2. **CHANGELOG.md** — New features under [Unreleased]
-3. **HANDOFF.md** — Current state, pending items
-4. **WORKFLOW.md** — Flow/branching changes
-5. **INDEX.md** — Diagram changes
-6. **ERROR_HANDLING.md** — If error handling pattern changes
-7. **DATABASE_SCHEMA.md** — If data layer changes
+1. **API.md** — Add new endpoint row to `Endpoints` table + add example
+2. **CHANGELOG.md** — Add bullet under `## [Unreleased]`
+3. **HANDOFF.md** — Update `What's Done` table + `Current State` date
+4. **TRACKING.md** — Mark completed items in checklist
 
 ## Changelog Rule (ENFORCED BY CI)
 - Every `feat:` or `fix:` commit MUST have a changelog entry
-- Add entry under `## [Unreleased]` in `CHANGELOG.md`
+- Add entry under `## [Unreleased]` in `docs/CHANGELOG.md`
 - Format: `- Description of change`
-- Run `python scripts/check_changelog.py` to verify
+- Run `cd backend && python scripts/check_changelog.py` to verify
 - Commit WILL FAIL if changelog not updated (validation pipeline blocks it)
 
 ## Feature Tracking
