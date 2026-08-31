@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { shortenUrl, getStats, type ShortenResponse } from "@/lib/api";
+import { shortenUrl, type ShortenResponse } from "@/lib/api";
 
 export default function Home() {
   const [url, setUrl] = useState("");
