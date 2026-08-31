@@ -55,6 +55,22 @@
 | Tests | pytest ✅ | Vitest ✅ |
 | Security | pip-audit ⚠️ | npm audit ⚠️ |
 
+## Branching & Promotion
+
+```
+feat/* → dev → qa → sit → uat → main
+```
+
+| Promotion | Policy |
+|-----------|--------|
+| feat → dev | CI pass only |
+| dev → qa | CI pass only |
+| qa → sit | 1 approval required |
+| sit → uat | 1 approval required |
+| uat → main | 2 approvals required |
+
+**Agent responsibility:** Create PR → target `dev`. Done. Humans handle promotion.
+
 ## Feature Spec Template
 When starting a new feature, copy `.hermes/specs/TEMPLATE.md` and fill in:
 - User Story + Acceptance Criteria (Given/When/Then format)
