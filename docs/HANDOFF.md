@@ -19,7 +19,7 @@
 | 1 | URL Shortener API (FastAPI) | ✅ |
 | 2 | Pydantic models | ✅ |
 | 3 | In-memory store | ✅ |
-| 4 | 16 backend tests (pytest) | ✅ |
+| 4 | 20 backend tests (pytest) | ✅ |
 | 5 | 4 frontend tests (Vitest) | ✅ |
 | 6 | CORS middleware | ✅ |
 | 7 | Next.js API proxy | ✅ |
@@ -33,6 +33,7 @@
 | 15 | AI tracking checklist | ✅ |
 | 16 | Configurable CORS + base URL | ✅ |
 | 17 | Frontend validation script | ✅ |
+| 18 | Click analytics tracking | ✅ |
 
 ### Pending
 | # | Feature | Priority | Spec |
@@ -42,7 +43,7 @@
 | 3 | JWT authentication | 🟡 Medium | ยังไม่มี spec |
 | 4 | Custom short ID | 🟡 Medium | ยังไม่มี spec |
 | 5 | URL expiration | 🟡 Medium | ยังไม่มี spec |
-| 6 | Click analytics | 🟢 Low | ยังไม่มี spec |
+
 
 > ยังไม่มี feature spec สำหรับ pending items — สร้างจาก `.hermes/specs/TEMPLATE.md`
 
