@@ -4,44 +4,35 @@
 
 ---
 
-## Current State (2026-08-27)
+## Current State (2026-08-31)
 
 ### Project
 - **Repo:** https://github.com/tuit2542/agentic-demo
-- **Branch:** main (protected, 2 approvals)
-- **Last commit:** chore: improve quality gates
-- **Tags:** v0.1.0, v0.2.0
+- **Structure:** Monorepo (backend/ + frontend/)
+- **Backend:** Python 3.11, FastAPI, Pydantic v2, uvicorn
+- **Frontend:** Next.js 16, React 19, TypeScript, Tailwind CSS
+- **Branching:** feat/* → dev → qa → sit → uat → main (auto-promote)
 
 ### What's Done
-
 | # | Feature | Status |
 |---|---------|--------|
 | 1 | URL Shortener API (FastAPI) | ✅ |
 | 2 | Pydantic models | ✅ |
 | 3 | In-memory store | ✅ |
-| 4 | 16 tests passing | ✅ |
-| 5 | Pre-commit validation (5 checks) | ✅ |
-| 6 | Language-agnostic validation | ✅ |
-| 7 | Spec intake pipeline | ✅ |
-| 8 | Health monitor cron | ✅ |
-| 9 | GitHub Actions CI | ✅ |
-| 10 | Auto-promote workflow | ✅ |
-| 11 | Deploy workflow | ✅ |
+| 4 | 16 backend tests (pytest) | ✅ |
+| 5 | 4 frontend tests (Vitest) | ✅ |
+| 6 | CORS middleware | ✅ |
+| 7 | Next.js API proxy | ✅ |
+| 8 | Frontend URL shortener page | ✅ |
+| 9 | Pre-commit validation (6 checks) | ✅ |
+| 10 | GitHub Actions CI | ✅ |
+| 11 | Auto-promote workflow | ✅ |
 | 12 | Branch protection (5 branches) | ✅ |
-| 13 | Enterprise branching strategy | ✅ |
-| 14 | PR creation skill | ✅ |
-| 15 | Documentation (docs/) | ✅ |
-| 16 | Best practices registry | ✅ |
-| 17 | SOUL.md (global) | ✅ |
-| 18 | Test coverage tracking (98%) | ✅ |
-| 19 | Code format (ruff format) | ✅ |
-| 20 | PR template | ✅ |
-| 21 | CODEOWNERS | ✅ |
-| 22 | Best practices auto-check (CI) | ✅ |
-| 23 | .editorconfig | ✅ |
+| 13 | Docker + docker-compose | ✅ |
+| 14 | Documentation (docs/) | ✅ |
+| 15 | AI tracking checklist | ✅ |
 
 ### Pending
-
 | # | Feature | Priority |
 |---|---------|----------|
 | 1 | SQLite/PostgreSQL storage | 🔴 High |
@@ -53,16 +44,34 @@
 
 ---
 
+## Quick Start
+
+```bash
+# Docker
+docker-compose up --build
+
+# Manual
+cd backend && python -m uvicorn src.app:create_app --factory --reload
+cd frontend && npm run dev
+```
+
+- Frontend: http://localhost:3000
+- Backend: http://localhost:8000
+- API Docs: http://localhost:8000/docs
+
+---
+
 ## Quality Gates
 
-| Check | Command | Must Pass |
-|-------|---------|-----------|
+| Check | Command | Status |
+|-------|---------|--------|
 | Lint | `ruff check src/ tests/` | ✅ |
 | Format | `ruff format --check src/ tests/` | ✅ |
 | Type check | `mypy src/ --ignore-missing-imports` | ✅ |
-| Tests | `pytest tests/ -v --cov=src` | ✅ |
-| Security | `pip-audit --desc` | ⚠️ warn-only |
-| Best practices | AST type hint check | ✅ |
+| Tests | `pytest tests/ -v` | ✅ |
+| Frontend lint | `npm run lint` | ✅ |
+| Frontend type | `npx tsc --noEmit` | ✅ |
+| Frontend test | `npm run test` | ✅ |
 
 ---
 
@@ -74,19 +83,8 @@ main (prod) ← 2 approvals
         └── sit ← 1 approval
               └── qa ← 1 approval
                     └── dev ← 1 approval
-                          ├── feat/*
-                          ├── hotfix/*
-                          └── bugfix/*
+                          └── feat/* (auto-promote)
 ```
-
----
-
-## Cron Jobs
-
-| Job ID | Name | Schedule |
-|--------|------|----------|
-| `e1deadafefd4` | project-health-monitor | every 30m |
-| `7eb8fde941a9` | spec-intake-monitor | every 10m |
 
 ---
 
@@ -96,59 +94,29 @@ main (prod) ← 2 approvals
 ```bash
 git checkout dev && git pull
 git checkout -b feat/my-feature
-cp .hermes/specs/TEMPLATE.md .hermes/specs/my-feature.md
-"process specs"
+# 1. Read docs/TRACKING.md
+# 2. Copy .hermes/specs/TEMPLATE.md → fill spec
+# 3. TDD: RED → GREEN → REFACTOR
+# 4. Validate → Commit → Push → Create PR to dev
 ```
 
 ### Bug Fix
 ```bash
-cp .hermes/specs/TEMPLATE.md .hermes/specs/bug-fix.md
-"fix this bug"
-```
-
-### Refactor
-```bash
-"refactor module X"
+git checkout -b fix/my-bug
+# Fix + test + validate + commit
 ```
 
 ---
 
-## Key Files to Read
+## Key Files
 
-1. `.hermes.md` — Project rules (agent auto-load)
-2. `.hermes/best-practices.md` — Coding standards
-3. `docs/INDEX.md` — Documentation map
-4. `docs/API.md` — API reference
-5. `docs/WORKFLOW.md` — Flow + branching
-
----
-
-## Key Commands
-
-```bash
-# Validation (full pipeline)
-python scripts/pre_commit_validate.py
-
-# Tests with coverage
-pytest tests/ -v --cov=src --cov-report=term-missing
-
-# Format code
-ruff format src/ tests/
-
-# Lint
-ruff check src/ tests/
-
-# Type check
-mypy src/ --ignore-missing-imports
-
-# Health check
-python scripts/check_project_health.py
-
-# GitHub
-"/c/Program Files/GitHub CLI/gh.exe" pr list
-"/c/Program Files/GitHub CLI/gh.exe" run list
-```
+1. `AGENTS.md` — Agent rules + commands
+2. `docs/TRACKING.md` — Feature checklist
+3. `docs/ERROR_HANDLING.md` — Error patterns
+4. `docs/DATABASE_SCHEMA.md` — Data layer
+5. `docs/API.md` — API reference
+6. `.hermes/specs/TEMPLATE.md` — Spec template
 
 ---
 
-*Last updated: 2026-08-27*
+*Last updated: 2026-08-31*
