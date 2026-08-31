@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from src.models import ClickRecord
 from src.store import UrlStore
 
 
@@ -30,3 +33,27 @@ def test_click_count_increments():
 def test_stats_unknown_returns_zero():
     store = UrlStore()
     assert store.stats("zzzzzz") == 0
+
+
+def test_record_click_returns_click_record():
+    store = UrlStore()
+    sid = store.shorten("https://example.com")
+    record = store.record_click(sid)
+    assert isinstance(record, ClickRecord)
+    assert record.timestamp is not None
+    assert record.referrer is None
+
+
+def test_get_history_returns_clicks():
+    store = UrlStore()
+    sid = store.shorten("https://example.com")
+    store.resolve(sid)
+    store.resolve(sid)
+    history = store.get_history(sid)
+    assert len(history) == 2
+    assert isinstance(history[0], ClickRecord)
+
+
+def test_get_history_unknown_returns_empty_list():
+    store = UrlStore()
+    assert store.get_history("zzzzzz") == []

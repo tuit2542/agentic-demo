@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import pytest
 from pydantic import ValidationError
 
-from src.models import ShortenRequest, ShortenResponse, StatsResponse
+from src.models import ClickRecord, ShortenRequest, ShortenResponse, StatsResponse
 
 
 def test_shorten_request_validates_url():
@@ -25,9 +27,26 @@ def test_shorten_response_fields():
     assert resp.short_url == "http://localhost/abc123"
 
 
+def test_click_record_fields():
+    rec = ClickRecord(timestamp="2026-08-31T10:00:00Z")
+    assert rec.timestamp == "2026-08-31T10:00:00Z"
+    assert rec.referrer is None
+
+    rec_ref = ClickRecord(
+        timestamp="2026-08-31T10:00:00Z", referrer="https://google.com"
+    )
+    assert rec_ref.referrer == "https://google.com"
+
+
 def test_stats_response_fields():
+    rec = ClickRecord(timestamp="2026-08-31T10:00:00Z")
     resp = StatsResponse(
-        short_id="abc123", clicks=5, original_url="https://example.com"
+        short_id="abc123",
+        clicks=5,
+        original_url="https://example.com",
+        clicks_history=[rec],
     )
     assert resp.clicks == 5
     assert resp.original_url == "https://example.com"
+    assert len(resp.clicks_history) == 1
+    assert resp.clicks_history[0].timestamp == "2026-08-31T10:00:00Z"
