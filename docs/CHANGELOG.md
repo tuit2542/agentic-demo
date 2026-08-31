@@ -9,6 +9,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 ## [Unreleased]
 
 ### Added
+- Click analytics tracking (ClickRecord model, click history in StatsResponse, record_click and get_history in UrlStore)
 - Documentation split into multiple files (docs/)
 - Auto-update flow in .hermes.md
 - Monorepo structure: backend/ + frontend/
@@ -20,6 +21,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 - Feature spec template with UI mockup section
 - Error handling documentation
 - Database schema documentation
+
 
 ### Changed
 - Consolidated all docs from PROJECT_DOCS.md to docs/
