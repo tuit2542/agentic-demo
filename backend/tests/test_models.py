@@ -50,3 +50,36 @@ def test_stats_response_fields():
     assert resp.original_url == "https://example.com"
     assert len(resp.clicks_history) == 1
     assert resp.clicks_history[0].timestamp == "2026-08-31T10:00:00Z"
+
+
+# === Edge Cases ===
+
+
+def test_shorten_request_rejects_invalid_url():
+    with pytest.raises(ValidationError):
+        ShortenRequest(url="not-a-url")
+
+
+def test_shorten_request_rejects_ftp_url():
+    with pytest.raises(ValidationError):
+        ShortenRequest(url="ftp://example.com/file.txt")
+
+
+def test_shorten_request_rejects_missing_scheme():
+    with pytest.raises(ValidationError):
+        ShortenRequest(url="example.com")
+
+
+def test_shorten_response_all_fields_required():
+    with pytest.raises(ValidationError):
+        ShortenResponse(short_id="abc123")
+
+
+def test_click_record_requires_timestamp():
+    with pytest.raises(ValidationError):
+        ClickRecord()
+
+
+def test_stats_response_requires_all_fields():
+    with pytest.raises(ValidationError):
+        StatsResponse(short_id="abc123", clicks=5)
