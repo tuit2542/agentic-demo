@@ -1,12 +1,11 @@
 # Feature: [NAME]
 
----
-spec_id: [auto-generated]
+<!-- spec_id: auto-generated from filename (e.g., feat/url-analytics.md → url-analytics) -->
+<!-- Fill in frontmatter, then delete this comment block -->
 priority: P0 | P1 | P2
 status: draft | ready | in_progress | done
-created: [YYYY-MM-DD]
-author: [name or "ai-generated"]
----
+created: YYYY-MM-DD
+author: name or "ai-generated"
 
 ## User Story
 As a [user type], I want [goal] so that [benefit].
