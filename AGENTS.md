@@ -85,9 +85,13 @@ After completing any task, update relevant docs in `docs/`:
 6. **ERROR_HANDLING.md** — If error handling pattern changes
 7. **DATABASE_SCHEMA.md** — If data layer changes
 
-### Changelog Rule (ENFORCED BY CI)
+## Changelog Rule (ENFORCED BY CI)
 - Every `feat:` or `fix:` commit MUST have a changelog entry
 - Add entry under `## [Unreleased]` in `CHANGELOG.md`
 - Format: `- Description of change`
 - Run `python scripts/check_changelog.py` to verify
 - Commit WILL FAIL if changelog not updated (validation pipeline blocks it)
+
+## Feature Tracking
+- Read `docs/TRACKING.md` before starting any new feature
+- Follow the checklist step by step
