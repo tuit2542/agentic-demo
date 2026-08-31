@@ -1,4 +1,11 @@
+from __future__ import annotations
+
 from pydantic import BaseModel, HttpUrl
+
+
+class ClickRecord(BaseModel):
+    timestamp: str
+    referrer: str | None = None
 
 
 class ShortenRequest(BaseModel):
@@ -14,6 +21,7 @@ class StatsResponse(BaseModel):
     short_id: str
     clicks: int
     original_url: str
+    clicks_history: list[ClickRecord]
 
 
 class ErrorResponse(BaseModel):

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 from httpx import ASGITransport, AsyncClient
 
@@ -44,6 +46,9 @@ async def test_stats_returns_count(client):
     assert resp.status_code == 200
     data = resp.json()
     assert data["clicks"] == 2
+    assert "clicks_history" in data
+    assert len(data["clicks_history"]) == 2
+    assert "timestamp" in data["clicks_history"][0]
 
 
 @pytest.mark.anyio

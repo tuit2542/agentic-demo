@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
@@ -41,7 +43,10 @@ def create_app() -> FastAPI:
         if original is None:
             raise HTTPException(status_code=404, detail="Short URL not found")
         clicks = store.stats(sid)
-        return StatsResponse(short_id=sid, clicks=clicks, original_url=original)
+        history = store.get_history(sid)
+        return StatsResponse(
+            short_id=sid, clicks=clicks, original_url=original, clicks_history=history
+        )
 
     @app.get("/{sid}", response_class=RedirectResponse, status_code=307)
     async def redirect_url(sid: str) -> RedirectResponse:
