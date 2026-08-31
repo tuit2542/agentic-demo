@@ -1,10 +1,11 @@
 # AI Feature Implementation Prompt Template
 
 > ใช้ template นี้สั่งงาน AI agent (agy, Claude Code, Codex, etc.)
+> AI จะทำ full-loop: design → code → test → commit → push → PR
 
 ---
 
-## Template
+## Template (Full Loop)
 
 ```
 Read these files first:
@@ -13,7 +14,7 @@ Read these files first:
 3. backend/.hermes.md (backend rules) — if backend feature
 4. frontend/.hermes.md (frontend rules) — if frontend feature
 
-IMPLEMENTATION STEPS:
+IMPLEMENTATION STEPS (FULL LOOP):
 
 Step 1 — RED (Write failing tests FIRST):
 - Read current code: backend/src/models.py, backend/src/store.py, backend/src/app.py
@@ -34,14 +35,31 @@ Step 3 — REFACTOR (Clean up):
 - Run: cd backend && python -m pytest tests/ -v
 - Verify tests still PASS
 
-Step 4 — Validation:
+Step 4 — Validation (ALL must pass):
 - Run: cd backend && python -m ruff check src/ tests/
 - Run: cd backend && python -m mypy src/ --ignore-missing-imports
 - Run: cd backend && python -m pytest tests/ -v
+- If ANY check fails → fix it before proceeding
 
 Step 5 — Update docs:
 - Update docs/CHANGELOG.md under [Unreleased]
 - Update docs/API.md if new endpoints
+
+Step 6 — Commit & Push (DO NOT SKIP):
+- git add -A
+- git commit -m "feat: {FEATURE_NAME} — short description"
+  (or "fix:" if bug fix, "chore:" if non-src change)
+- git push -u origin HEAD
+
+Step 7 — Create PR:
+- gh pr create --title "feat: {FEATURE_NAME}" --body "## Changes
+- Summary of what was implemented
+- List key files changed
+
+## Verification
+- Backend: N tests passed ✅
+- Frontend: M tests passed ✅ (if applicable)
+- Type check: passed ✅"
 
 RULES:
 - Follow TDD strictly: RED → GREEN → REFACTOR
@@ -50,6 +68,8 @@ RULES:
 - Test all error paths
 - No wildcard imports
 - Use Conventional Commits: feat: or fix:
+- ALWAYS commit + push + create PR at the end
+- NEVER stop after coding — the loop is not done until PR is created
 ```
 
 ---
@@ -62,7 +82,7 @@ Read these files first:
 2. AGENTS.md
 3. backend/.hermes.md
 
-IMPLEMENTATION STEPS:
+IMPLEMENTATION STEPS (FULL LOOP):
 
 Step 1 — RED:
 - Add ClickRecord model to tests/test_models.py
@@ -81,6 +101,14 @@ Step 2 — GREEN:
 - Verify PASS
 
 Step 3 — REFACTOR + VALIDATION + DOCS
+
+Step 6 — COMMIT & PUSH:
+- git add -A
+- git commit -m "feat: click analytics — add click history tracking"
+- git push -u origin HEAD
+
+Step 7 — CREATE PR:
+- gh pr create --title "feat: click analytics" --body "..."
 ```
 
 ---
@@ -102,3 +130,4 @@ Step 3 — REFACTOR + VALIDATION + DOCS
 - ระบุ test cases ชัดเจน — AI จะเขียน tests ได้ตรง
 - ตั้ง timeout ให้พอ (300-600s) — TDD loop ใช้เวลา
 - เช็ค tests หลัง AI เสร็จ — บางที AI ข้าม validation
+- **สำคัญ:** ต้องบอกให้ AI commit + push + PR — ถ้าไม่บอกจะไม่ทำ
