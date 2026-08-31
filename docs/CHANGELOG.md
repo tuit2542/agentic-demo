@@ -11,6 +11,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 ### Added
 - Documentation split into multiple files (docs/)
 - Auto-update flow in .hermes.md
+- Monorepo structure: backend/ + frontend/
+- Next.js 16 + React 19 + TypeScript frontend
+- Frontend API client (src/lib/api.ts)
+- Frontend tests with Vitest + React Testing Library
+- CI pipeline: separate backend + frontend jobs
+- .env.example for environment config
+- Feature spec template with UI mockup section
+- Error handling documentation
+- Database schema documentation
 
 ### Changed
 - Consolidated all docs from PROJECT_DOCS.md to docs/
