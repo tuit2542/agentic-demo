@@ -10,7 +10,7 @@
 |----------|--------|--------------|----------|-------------|
 | `/health` | GET | - | `{"status": "ok"}` | Health check |
 | `/shorten` | POST | `{"url": "https://example.com"}` | `{"short_id": "abc123", "short_url": "http://localhost/abc123"}` | สร้าง short URL |
-| `/stats/{sid}` | GET | - | `{"short_id": "abc123", "clicks": 5, "original_url": "..."}` | ดูสถิติ |
+| `/stats/{sid}` | GET | - | `{"short_id": "abc123", "clicks": 5, "original_url": "...", "clicks_history": [...]}` | ดูสถิติ |
 | `/{sid}` | GET | - | 307 Redirect → original URL | Redirect |
 
 ---
@@ -21,7 +21,8 @@
 |-------|--------|-------------|
 | `ShortenRequest` | `url: str` (validated) | Validate input ตอนสร้าง short URL |
 | `ShortenResponse` | `short_id: str`, `short_url: str` | Response ตอนสร้าง short URL |
-| `StatsResponse` | `short_id: str`, `clicks: int`, `original_url: str` | Response ตอนดูสถิติ |
+| `ClickRecord` | `timestamp: str`, `referrer: str \| None` | บันทึกรายละเอียดการคลิก |
+| `StatsResponse` | `short_id: str`, `clicks: int`, `original_url: str`, `clicks_history: list[ClickRecord]` | Response ตอนดูสถิติ |
 
 ---
 
@@ -32,11 +33,14 @@
 | `UrlStore` | `shorten(url) -> short_id` | สร้าง short ID จาก URL |
 | `UrlStore` | `resolve(short_id) -> url` | หา original URL จาก short ID |
 | `UrlStore` | `stats(short_id) -> int` | ดู click count |
+| `UrlStore` | `record_click(short_id) -> ClickRecord` | บันทึก click history |
+| `UrlStore` | `get_history(short_id) -> list[ClickRecord]` | ดึง click history |
 
 **Logic:**
 - Short ID: 6-char alphanumeric (a-z, A-Z, 0-9)
 - Storage: Python dict (in-memory, ไม่ persist)
-- Click count: เพิ่มทุกครั้งที่ resolve
+- Click count: เพิ่มทุกครั้งที่ resolve หรือ record_click
+- Click history: เก็บรายการ timestamps ของทุกการคลิก
 
 ---
 
@@ -67,7 +71,13 @@ Response:
 {
   "short_id": "AbC123",
   "clicks": 5,
-  "original_url": "https://example.com/very-long-url"
+  "original_url": "https://example.com/very-long-url",
+  "clicks_history": [
+    {
+      "timestamp": "2026-08-31T10:00:00Z",
+      "referrer": null
+    }
+  ]
 }
 ```
 
@@ -77,11 +87,12 @@ Response:
 
 | File | Tests | Status |
 |------|-------|--------|
-| `tests/test_store.py` | 5 tests | ✅ |
-| `tests/test_models.py` | 5 tests | ✅ |
+| `tests/test_store.py` | 8 tests | ✅ |
+| `tests/test_models.py` | 6 tests | ✅ |
 | `tests/test_app.py` | 6 tests | ✅ |
-| **Total** | **16 tests** | **✅ All pass** |
+| **Total** | **20 tests** | **✅ All pass** |
 
 ---
 
 *Last updated: 2026-08-31*
+

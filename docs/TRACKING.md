@@ -39,13 +39,15 @@
 - [ ] Commit message: Conventional Commits (`feat:`, `fix:`, `chore:`)
 - [ ] Push to origin
 - [ ] Create PR → target `dev`
-- [ ] Auto-Promote: dev → qa → sit → uat → main (อัตโนมัติ)
+- [ ] **Agent จบงานตรงนี้** — ไม่ต้องทำอะไรต่อ
 
-## Verify
+## After PR Created (Human Responsibility)
 
-- [ ] CI passes (backend + frontend)
-- [ ] PR merged to main
-- [ ] Feature works in production
+- [ ] Human approve PR → dev
+- [ ] Human approve PR → qa (1 approval)
+- [ ] Human approve PR → sit (1 approval)
+- [ ] Human approve PR → uat (1 approval)
+- [ ] Human approve PR → main (2 approvals)
 
 ---
 
@@ -54,3 +56,5 @@
 - **Secrets:** ห้าม commit
 - **Type hints:** ต้องมีครบ (backend)
 - **Tests:** ต้องมีครบ (backend + frontend)
+- **Agent ทำแค่:** implement → validate → commit → push → PR → dev
+- **Human ทำ:** approve + promote ข้าม env
