@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
+from src.config import get_base_url, get_cors_origins
 from src.models import ShortenRequest, ShortenResponse, StatsResponse
 from src.store import UrlStore
 
@@ -13,13 +14,10 @@ def create_app() -> FastAPI:
         redoc_url="/redoc",
     )
 
-    # CORS — allow frontend origin
+    # CORS — from env
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[
-            "http://localhost:3000",
-            "http://localhost:3001",
-        ],
+        allow_origins=get_cors_origins(),
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -34,7 +32,8 @@ def create_app() -> FastAPI:
     @app.post("/shorten", response_model=ShortenResponse, status_code=201)
     async def shorten(req: ShortenRequest) -> ShortenResponse:
         sid = store.shorten(str(req.url))
-        return ShortenResponse(short_id=sid, short_url=f"http://localhost/{sid}")
+        base = get_base_url()
+        return ShortenResponse(short_id=sid, short_url=f"{base}/{sid}")
 
     @app.get("/stats/{sid}", response_model=StatsResponse)
     async def stats(sid: str) -> StatsResponse:
@@ -57,4 +56,6 @@ def create_app() -> FastAPI:
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(create_app(), host="0.0.0.0", port=8000)
+    from src.config import get_host, get_port
+
+    uvicorn.run(create_app(), host=get_host(), port=get_port())
