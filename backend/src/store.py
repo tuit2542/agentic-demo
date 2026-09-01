@@ -4,7 +4,7 @@ import random
 import string
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from src.models import ClickRecord
 
@@ -34,10 +34,17 @@ class UrlStore:
         self._clicks: dict[str, int] = {}
         self._history: dict[str, list[ClickRecord]] = {}
         self._url_owner: dict[str, int] = {}
+        self._expires_at: dict[str, str] = {}  # short_id → ISO8601 UTC
+        self._created_at: dict[str, str] = {}  # short_id → ISO8601 UTC
 
     def shorten(
-        self, url: str, user_id: int | None = None, custom_id: str | None = None
+        self,
+        url: str,
+        user_id: int | None = None,
+        custom_id: str | None = None,
+        expires_in: int | None = None,
     ) -> str:
+        now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         if custom_id:
             if custom_id in self._urls:
                 raise ValueError("Custom ID already taken")
@@ -49,15 +56,30 @@ class UrlStore:
         self._urls[sid] = url
         self._clicks[sid] = 0
         self._history[sid] = []
+        self._created_at[sid] = now
         if user_id is not None:
             self._url_owner[sid] = user_id
+        if expires_in is not None:
+            exp = datetime.now(timezone.utc) + timedelta(seconds=expires_in)
+            self._expires_at[sid] = exp.strftime("%Y-%m-%dT%H:%M:%SZ")
         return sid
 
+    def is_expired(self, sid: str) -> bool:
+        exp = self._expires_at.get(sid)
+        if exp is None:
+            return False
+        return datetime.now(timezone.utc) > datetime.fromisoformat(exp)
+
+    def get_expires_at(self, sid: str) -> str | None:
+        return self._expires_at.get(sid)
+
     def resolve(self, sid: str) -> str | None:
-        if sid in self._urls:
-            self.record_click(sid)
-            return self._urls[sid]
-        return None
+        if sid not in self._urls:
+            return None
+        if self.is_expired(sid):
+            return None
+        self.record_click(sid)
+        return self._urls[sid]
 
     def record_click(self, sid: str, referrer: str | None = None) -> ClickRecord:
         rec = ClickRecord(
@@ -82,6 +104,20 @@ class UrlStore:
 
     def get_owner(self, sid: str) -> int | None:
         return self._url_owner.get(sid)
+
+    def delete(self, sid: str, user_id: int) -> bool:
+        if sid not in self._urls:
+            return False
+        owner = self._url_owner.get(sid)
+        if owner is not None and owner != user_id:
+            raise PermissionError("Not owner")
+        del self._urls[sid]
+        self._clicks.pop(sid, None)
+        self._history.pop(sid, None)
+        self._expires_at.pop(sid, None)
+        self._created_at.pop(sid, None)
+        self._url_owner.pop(sid, None)
+        return True
 
 
 class InMemoryUserRepo(UserRepository):
