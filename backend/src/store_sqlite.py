@@ -50,10 +50,17 @@ class SqliteStore:
         )
         self._conn.commit()
 
-    def shorten(self, url: str, user_id: int | None = None) -> str:
-        sid = "".join(random.choices(string.ascii_letters + string.digits, k=6))
-        while self._get_url_id(sid) is not None:
+    def shorten(
+        self, url: str, user_id: int | None = None, custom_id: str | None = None
+    ) -> str:
+        if custom_id:
+            if self._get_url_id(custom_id) is not None:
+                raise ValueError("Custom ID already taken")
+            sid = custom_id
+        else:
             sid = "".join(random.choices(string.ascii_letters + string.digits, k=6))
+            while self._get_url_id(sid) is not None:
+                sid = "".join(random.choices(string.ascii_letters + string.digits, k=6))
         self._conn.execute(
             "INSERT INTO urls (short_id, original_url, user_id) VALUES (?, ?, ?)",
             (sid, url, user_id),
