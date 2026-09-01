@@ -43,5 +43,8 @@ class UrlStore:
     def get_history(self, sid: str) -> list[ClickRecord]:
         return self._history.get(sid, [])
 
+    def peek(self, sid: str) -> str | None:
+        return self._urls.get(sid)
+
     def stats(self, sid: str) -> int:
         return self._clicks.get(sid, 0)

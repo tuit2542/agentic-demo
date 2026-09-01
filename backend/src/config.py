@@ -3,6 +3,11 @@ from __future__ import annotations
 import os
 
 
+def get_database_url() -> str:
+    """Database URL — empty string means in-memory store."""
+    return os.getenv("DATABASE_URL", "")
+
+
 def get_cors_origins() -> list[str]:
     """Read CORS origins from env."""
     raw = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:3001")
