@@ -111,7 +111,12 @@ def create_app() -> FastAPI:
                 headers=headers,
             )
         user_id = int(user["sub"])
-        sid = store.shorten(str(req.url), user_id=user_id)
+        try:
+            sid = store.shorten(str(req.url), user_id=user_id, custom_id=req.custom_id)
+        except ValueError as e:
+            if "already taken" in str(e):
+                raise HTTPException(status_code=409, detail=str(e))
+            raise
         base = get_base_url()
         headers = _rate_limit_headers(key)
         return JSONResponse(
@@ -133,7 +138,12 @@ def create_app() -> FastAPI:
                 content={"detail": "Rate limit exceeded. Try again in 60 seconds."},
                 headers=headers,
             )
-        sid = store.shorten(str(req.url))
+        try:
+            sid = store.shorten(str(req.url), custom_id=req.custom_id)
+        except ValueError as e:
+            if "already taken" in str(e):
+                raise HTTPException(status_code=409, detail=str(e))
+            raise
         base = get_base_url()
         headers = _rate_limit_headers(key)
         return JSONResponse(
