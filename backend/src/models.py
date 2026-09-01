@@ -4,8 +4,8 @@ import re
 
 from pydantic import BaseModel, field_validator
 
-# Reserved paths that cannot be used as custom short IDs
 RESERVED_IDS = {"health", "stats", "docs", "redoc", "auth", "shorten", "shorten-anon"}
+MAX_TTL = 31_536_000  # 1 year in seconds
 
 
 class ClickRecord(BaseModel):
@@ -16,6 +16,7 @@ class ClickRecord(BaseModel):
 class ShortenRequest(BaseModel):
     url: str
     custom_id: str | None = None
+    expires_in: int | None = None
 
     @field_validator("url")
     @classmethod
@@ -45,10 +46,20 @@ class ShortenRequest(BaseModel):
             raise ValueError(f"'{v}' is a reserved path")
         return v
 
+    @field_validator("expires_in")
+    @classmethod
+    def validate_expires_in(cls, v: int | None) -> int | None:
+        if v is None:
+            return None
+        if v < 1 or v > MAX_TTL:
+            raise ValueError("expires_in must be between 1 and 31536000 seconds")
+        return v
+
 
 class ShortenResponse(BaseModel):
     short_id: str
     short_url: str
+    expires_at: str | None = None
 
 
 class StatsResponse(BaseModel):
@@ -56,6 +67,8 @@ class StatsResponse(BaseModel):
     clicks: int
     original_url: str
     clicks_history: list[ClickRecord]
+    expired: bool = False
+    expires_at: str | None = None
 
 
 class ErrorResponse(BaseModel):
