@@ -18,8 +18,6 @@ class User:
 
 
 class UserRepository(ABC):
-    """Abstract user repository — switch DB by swapping implementation."""
-
     @abstractmethod
     def create_user(self, email: str, password_hash: str) -> User: ...
 
@@ -35,12 +33,19 @@ class UrlStore:
         self._urls: dict[str, str] = {}
         self._clicks: dict[str, int] = {}
         self._history: dict[str, list[ClickRecord]] = {}
-        self._url_owner: dict[str, int] = {}  # short_id → user_id
+        self._url_owner: dict[str, int] = {}
 
-    def shorten(self, url: str, user_id: int | None = None) -> str:
-        sid = "".join(random.choices(string.ascii_letters + string.digits, k=6))
-        while sid in self._urls:
+    def shorten(
+        self, url: str, user_id: int | None = None, custom_id: str | None = None
+    ) -> str:
+        if custom_id:
+            if custom_id in self._urls:
+                raise ValueError("Custom ID already taken")
+            sid = custom_id
+        else:
             sid = "".join(random.choices(string.ascii_letters + string.digits, k=6))
+            while sid in self._urls:
+                sid = "".join(random.choices(string.ascii_letters + string.digits, k=6))
         self._urls[sid] = url
         self._clicks[sid] = 0
         self._history[sid] = []
@@ -80,8 +85,6 @@ class UrlStore:
 
 
 class InMemoryUserRepo(UserRepository):
-    """In-memory user repo — for dev/test, swap to SqliteUserRepo in prod."""
-
     def __init__(self) -> None:
         self._users: dict[str, User] = {}
         self._by_id: dict[int, User] = {}
