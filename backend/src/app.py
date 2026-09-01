@@ -112,22 +112,28 @@ def create_app() -> FastAPI:
             )
         user_id = int(user["sub"])
         try:
-            sid = store.shorten(str(req.url), user_id=user_id, custom_id=req.custom_id)
+            sid = store.shorten(
+                str(req.url),
+                user_id=user_id,
+                custom_id=req.custom_id,
+                expires_in=req.expires_in,
+            )
         except ValueError as e:
             if "already taken" in str(e):
                 raise HTTPException(status_code=409, detail=str(e))
             raise
         base = get_base_url()
         headers = _rate_limit_headers(key)
+        expires_at = store.get_expires_at(sid)
         return JSONResponse(
             status_code=201,
             content=ShortenResponse(
-                short_id=sid, short_url=f"{base}/{sid}"
+                short_id=sid, short_url=f"{base}/{sid}", expires_at=expires_at
             ).model_dump(),
             headers=headers,
         )
 
-    # ── URL Shortener (anonymous — backward compatible) ─
+    # ── URL Shortener (anonymous) ───────────────────────
     @app.post("/shorten-anon", response_model=ShortenResponse, status_code=201)
     async def shorten_anon(req: ShortenRequest, request: Request) -> JSONResponse:
         key = f"shorten:{request.client.host if request.client else 'unknown'}"
@@ -139,20 +145,37 @@ def create_app() -> FastAPI:
                 headers=headers,
             )
         try:
-            sid = store.shorten(str(req.url), custom_id=req.custom_id)
+            sid = store.shorten(
+                str(req.url), custom_id=req.custom_id, expires_in=req.expires_in
+            )
         except ValueError as e:
             if "already taken" in str(e):
                 raise HTTPException(status_code=409, detail=str(e))
             raise
         base = get_base_url()
         headers = _rate_limit_headers(key)
+        expires_at = store.get_expires_at(sid)
         return JSONResponse(
             status_code=201,
             content=ShortenResponse(
-                short_id=sid, short_url=f"{base}/{sid}"
+                short_id=sid, short_url=f"{base}/{sid}", expires_at=expires_at
             ).model_dump(),
             headers=headers,
         )
+
+    # ── Delete ──────────────────────────────────────────
+    @app.delete("/{sid}", status_code=204)
+    async def delete_url(
+        sid: str, user: dict = Depends(get_current_user)
+    ) -> JSONResponse:
+        user_id = int(user["sub"])
+        try:
+            deleted = store.delete(sid, user_id)
+        except PermissionError:
+            raise HTTPException(status_code=403, detail="Not owner")
+        if not deleted:
+            raise HTTPException(status_code=404, detail="Short URL not found")
+        return JSONResponse(status_code=204, content=None)  # type: ignore
 
     # ── Stats & Redirect ────────────────────────────────
     @app.get("/stats/{sid}", response_model=StatsResponse)
@@ -162,8 +185,15 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=404, detail="Short URL not found")
         clicks = store.stats(sid)
         history = store.get_history(sid)
+        expired = store.is_expired(sid)
+        expires_at = store.get_expires_at(sid)
         return StatsResponse(
-            short_id=sid, clicks=clicks, original_url=original, clicks_history=history
+            short_id=sid,
+            clicks=clicks,
+            original_url=original,
+            clicks_history=history,
+            expired=expired,
+            expires_at=expires_at,
         )
 
     @app.get("/{sid}", response_class=RedirectResponse, status_code=307)
@@ -176,8 +206,12 @@ def create_app() -> FastAPI:
                 content={"detail": "Rate limit exceeded. Try again in 60 seconds."},
                 headers=headers,
             )
+        # Check expiry before resolve
+        if store.is_expired(sid):
+            raise HTTPException(status_code=410, detail="Short URL has expired")
         url = store.resolve(sid)
         if url is None:
+            # Check if exists but expired (already handled) or truly not found
             raise HTTPException(status_code=404, detail="Short URL not found")
         headers = _rate_limit_headers(key)
         response = RedirectResponse(url=url, status_code=307)

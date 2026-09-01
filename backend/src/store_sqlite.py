@@ -3,7 +3,7 @@ from __future__ import annotations
 import random
 import sqlite3
 import string
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from src.models import ClickRecord
 from src.store import User, UserRepository
@@ -35,7 +35,8 @@ class SqliteStore:
                 short_id    TEXT NOT NULL UNIQUE,
                 original_url TEXT NOT NULL,
                 user_id     INTEGER REFERENCES users(id),
-                created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+                created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+                expires_at  TEXT DEFAULT NULL
             );
             CREATE INDEX IF NOT EXISTS idx_short_id ON urls(short_id);
 
@@ -48,10 +49,27 @@ class SqliteStore:
             CREATE INDEX IF NOT EXISTS idx_url_id ON clicks(url_id);
             """
         )
+        # Migrate: add expires_at if missing (for existing DB)
+        try:
+            self._conn.execute("SELECT expires_at FROM urls LIMIT 0")
+        except sqlite3.OperationalError:
+            self._conn.execute(
+                "ALTER TABLE urls ADD COLUMN expires_at TEXT DEFAULT NULL"
+            )
         self._conn.commit()
 
+    def _get_url_id(self, sid: str) -> int | None:
+        row = self._conn.execute(
+            "SELECT id FROM urls WHERE short_id = ?", (sid,)
+        ).fetchone()
+        return row["id"] if row else None
+
     def shorten(
-        self, url: str, user_id: int | None = None, custom_id: str | None = None
+        self,
+        url: str,
+        user_id: int | None = None,
+        custom_id: str | None = None,
+        expires_in: int | None = None,
     ) -> str:
         if custom_id:
             if self._get_url_id(custom_id) is not None:
@@ -61,20 +79,34 @@ class SqliteStore:
             sid = "".join(random.choices(string.ascii_letters + string.digits, k=6))
             while self._get_url_id(sid) is not None:
                 sid = "".join(random.choices(string.ascii_letters + string.digits, k=6))
+        expires_at = None
+        if expires_in is not None:
+            exp = datetime.now(timezone.utc) + timedelta(seconds=expires_in)
+            expires_at = exp.strftime("%Y-%m-%dT%H:%M:%SZ")
         self._conn.execute(
-            "INSERT INTO urls (short_id, original_url, user_id) VALUES (?, ?, ?)",
-            (sid, url, user_id),
+            "INSERT INTO urls (short_id, original_url, user_id, expires_at) VALUES (?, ?, ?, ?)",
+            (sid, url, user_id, expires_at),
         )
         self._conn.commit()
         return sid
 
-    def _get_url_id(self, sid: str) -> int | None:
+    def is_expired(self, sid: str) -> bool:
         row = self._conn.execute(
-            "SELECT id FROM urls WHERE short_id = ?", (sid,)
+            "SELECT expires_at FROM urls WHERE short_id = ?", (sid,)
         ).fetchone()
-        return row["id"] if row else None
+        if row is None or row["expires_at"] is None:
+            return False
+        return datetime.now(timezone.utc) > datetime.fromisoformat(row["expires_at"])
+
+    def get_expires_at(self, sid: str) -> str | None:
+        row = self._conn.execute(
+            "SELECT expires_at FROM urls WHERE short_id = ?", (sid,)
+        ).fetchone()
+        return row["expires_at"] if row else None
 
     def resolve(self, sid: str) -> str | None:
+        if self.is_expired(sid):
+            return None
         url_id = self._get_url_id(sid)
         if url_id is None:
             return None
@@ -138,6 +170,21 @@ class SqliteStore:
             "SELECT user_id FROM urls WHERE short_id = ?", (sid,)
         ).fetchone()
         return row["user_id"] if row and row["user_id"] else None
+
+    def delete(self, sid: str, user_id: int) -> bool:
+        row = self._conn.execute(
+            "SELECT user_id FROM urls WHERE short_id = ?", (sid,)
+        ).fetchone()
+        if row is None:
+            return False
+        owner = row["user_id"]
+        if owner is not None and owner != user_id:
+            raise PermissionError("Not owner")
+        url_id = self._get_url_id(sid)
+        self._conn.execute("DELETE FROM clicks WHERE url_id = ?", (url_id,))
+        self._conn.execute("DELETE FROM urls WHERE short_id = ?", (sid,))
+        self._conn.commit()
+        return True
 
     def close(self) -> None:
         self._conn.close()
