@@ -11,29 +11,30 @@
 - **Structure:** Monorepo (backend/ + frontend/)
 - **Backend:** Python 3.11, FastAPI, Pydantic v2, uvicorn
 - **Frontend:** Next.js 16, React 19, TypeScript, Tailwind CSS
-- **Branching:** feat/* → dev → qa → sit → uat → main (auto-promote)
+- **Branching:** feat/* → dev → qa → sit → uat → main (human-gated promotion)
 
 ### What's Done
-| # | Feature | Status |
-|---|---------|--------|
+| # | Feature | Tests |
+|---|---------|-------|
 | 1 | URL Shortener API (FastAPI) | ✅ |
-| 2 | Pydantic models | ✅ |
+| 2 | Pydantic models + validation | ✅ |
 | 3 | In-memory store | ✅ |
-| 4 | 20 backend tests (pytest) | ✅ |
-| 5 | 4 frontend tests (Vitest) | ✅ |
-| 6 | CORS middleware | ✅ |
+| 4 | 34 backend tests (pytest) | ✅ |
+| 5 | 14 frontend tests (Vitest) | ✅ |
+| 6 | CORS middleware (configurable) | ✅ |
 | 7 | Next.js API proxy | ✅ |
 | 8 | Frontend URL shortener page | ✅ |
 | 9 | Pre-commit validation (6 checks) | ✅ |
-| 10 | GitHub Actions CI | ✅ |
-| 11 | Auto-promote workflow | ✅ |
-| 12 | Branch protection (5 branches) | ✅ |
-| 13 | Docker + docker-compose | ✅ |
-| 14 | Documentation (docs/) | ✅ |
-| 15 | AI tracking checklist | ✅ |
-| 16 | Configurable CORS + base URL | ✅ |
-| 17 | Frontend validation script | ✅ |
-| 18 | Click analytics tracking | ✅ |
+| 10 | GitHub Actions CI (backend + frontend) | ✅ |
+| 11 | Branch protection (qa/sit/uat/main) | ✅ |
+| 12 | Docker + docker-compose | ✅ |
+| 13 | Documentation (docs/) | ✅ |
+| 14 | AI tracking checklist | ✅ |
+| 15 | Configurable CORS + base URL | ✅ |
+| 16 | Frontend validation script | ✅ |
+| 17 | Click analytics tracking | ✅ |
+| 18 | TDD edge case tests (34+14) | ✅ |
+| 19 | Deployment workflow | ✅ |
 
 ### Pending
 | # | Feature | Priority | Spec |
@@ -43,7 +44,6 @@
 | 3 | JWT authentication | 🟡 Medium | ยังไม่มี spec |
 | 4 | Custom short ID | 🟡 Medium | ยังไม่มี spec |
 | 5 | URL expiration | 🟡 Medium | ยังไม่มี spec |
-
 
 > ยังไม่มี feature spec สำหรับ pending items — สร้างจาก `.hermes/specs/TEMPLATE.md`
 
@@ -73,10 +73,10 @@ cd frontend && npm run dev
 | Lint | `ruff check src/ tests/` | ✅ |
 | Format | `ruff format --check src/ tests/` | ✅ |
 | Type check | `mypy src/ --ignore-missing-imports` | ✅ |
-| Tests | `pytest tests/ -v` | ✅ |
+| Tests | `pytest tests/ -v` | ✅ (34 passed) |
 | Frontend lint | `npm run lint` | ✅ |
 | Frontend type | `npx tsc --noEmit` | ✅ |
-| Frontend test | `npm run test` | ✅ |
+| Frontend test | `npm run test` | ✅ (14 passed) |
 
 ---
 
@@ -87,9 +87,11 @@ main (prod) ← 2 approvals
   └── uat ← 1 approval
         └── sit ← 1 approval
               └── qa ← 1 approval
-                    └── dev ← 1 approval
-                          └── feat/* (auto-promote)
+                    └── dev
+                          └── feat/* (PR → dev only)
 ```
+
+**Agent scope:** PR → dev only. Humans handle promotion.
 
 ---
 
