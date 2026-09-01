@@ -4,6 +4,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from src.app import create_app
+from src.rate_limiter import RateLimiter
 
 
 @pytest.fixture
@@ -25,6 +26,14 @@ async def test_shorten_returns_201(client):
     data = resp.json()
     assert "short_id" in data
     assert "short_url" in data
+
+
+@pytest.mark.anyio
+async def test_shorten_returns_rate_limit_headers(client):
+    resp = await client.post("/shorten", json={"url": "https://example.com"})
+    assert "X-RateLimit-Limit" in resp.headers
+    assert "X-RateLimit-Remaining" in resp.headers
+    assert "X-RateLimit-Reset" in resp.headers
 
 
 @pytest.mark.anyio
@@ -67,3 +76,35 @@ async def test_redirect_unknown_returns_404(client):
 async def test_stats_unknown_returns_404(client):
     resp = await client.get("/stats/zzzzzz")
     assert resp.status_code == 404
+
+
+@pytest.mark.anyio
+async def test_rate_limit_shorten_returns_429():
+    """Test rate limiting with small limit."""
+    # Create app with overridden limiter via monkeypatch on module level
+    import src.app as app_module
+
+    original_fn = app_module.get_rate_limiter
+    app_module.get_rate_limiter = lambda: RateLimiter(limit=2, window=60)
+    try:
+        app = create_app()
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as c:
+            resp = await c.post("/shorten", json={"url": "https://example.com"})
+            assert resp.status_code == 201
+            resp = await c.post("/shorten", json={"url": "https://example2.com"})
+            assert resp.status_code == 201
+            resp = await c.post("/shorten", json={"url": "https://example3.com"})
+            assert resp.status_code == 429
+            assert "Rate limit exceeded" in resp.json()["detail"]
+            assert "X-RateLimit-Limit" in resp.headers
+    finally:
+        app_module.get_rate_limiter = original_fn
+
+
+@pytest.mark.anyio
+async def test_rate_limit_stats_no_limit(client):
+    # Stats should NOT be rate limited — no limit key, just check 404
+    for _ in range(10):
+        resp = await client.get("/stats/zzzzzz")
+        assert resp.status_code == 404  # 404 not 429
