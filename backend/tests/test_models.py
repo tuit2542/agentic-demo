@@ -8,7 +8,7 @@ from src.models import ClickRecord, ShortenRequest, ShortenResponse, StatsRespon
 
 def test_shorten_request_validates_url():
     req = ShortenRequest(url="https://example.com")
-    assert str(req.url) == "https://example.com/"
+    assert req.url == "https://example.com"
 
 
 def test_shorten_request_rejects_empty_url():
