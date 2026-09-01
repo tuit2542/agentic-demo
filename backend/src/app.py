@@ -4,9 +4,20 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
-from src.config import get_base_url, get_cors_origins
+from src.config import get_base_url, get_cors_origins, get_database_url
 from src.models import ShortenRequest, ShortenResponse, StatsResponse
-from src.store import UrlStore
+
+
+def _create_store():
+    """Create store based on DATABASE_URL env."""
+    db_url = get_database_url()
+    if db_url:
+        from src.store_sqlite import SqliteStore
+
+        return SqliteStore(db_url)
+    from src.store import UrlStore
+
+    return UrlStore()
 
 
 def create_app() -> FastAPI:
@@ -25,7 +36,7 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    store = UrlStore()
+    store = _create_store()
 
     @app.get("/health")
     async def health() -> dict[str, str]:
@@ -39,7 +50,7 @@ def create_app() -> FastAPI:
 
     @app.get("/stats/{sid}", response_model=StatsResponse)
     async def stats(sid: str) -> StatsResponse:
-        original = store._urls.get(sid)
+        original = store.peek(sid)
         if original is None:
             raise HTTPException(status_code=404, detail="Short URL not found")
         clicks = store.stats(sid)
