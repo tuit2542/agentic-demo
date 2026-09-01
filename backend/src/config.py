@@ -3,6 +3,14 @@ from __future__ import annotations
 import os
 
 
+def get_jwt_secret() -> str:
+    return os.getenv("JWT_SECRET", "dev-secret-change-in-prod")
+
+
+def get_jwt_expire_minutes() -> int:
+    return int(os.getenv("JWT_EXPIRE_MINUTES", "60"))
+
+
 def get_database_url() -> str:
     """Database URL — empty string means in-memory store."""
     return os.getenv("DATABASE_URL", "")

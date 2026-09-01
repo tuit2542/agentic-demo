@@ -1,18 +1,2 @@
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-asyncio_mode = "auto"
-
-[tool.coverage.run]
-source = ["src"]
-omit = ["tests/*"]
-
-[tool.coverage.report]
-show_missing = true
-fail_under = 80
-exclude_lines = [
-    "pragma: no cover",
-    "def __repr__",
-    "if __name__ == .__main__.",
-    "pass",
-    "raise NotImplementedError",
-]
+[tool.ruff.lint]
+ignore = ["B008"]

@@ -9,3 +9,5 @@ anyio>=4.0
 ruff>=0.4
 mypy>=1.8
 pip-audit>=2.7
+bcrypt>=4.1
+pyjwt>=2.8
