@@ -2,11 +2,12 @@ name: Deploy
 
 on:
   push:
-    branches: [dev, qa, sit, uat, main]
+    branches: [main]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - uses: actions/checkout@v4
 
@@ -16,43 +17,20 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
+        working-directory: backend
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run tests
+      - name: Verify tests pass
+        working-directory: backend
         run: python -m pytest tests/ -v
 
-      - name: Deploy to environment
+      - name: Deploy to production
         env:
           ENVIRONMENT: ${{ github.ref_name }}
         run: |
-          echo "========================================="
-          echo "  Deploying to: $ENVIRONMENT"
-          echo "========================================="
-          
-          case "$ENVIRONMENT" in
-            dev)
-              echo "Deploying to Dev Server..."
-              # เพิ่ม deploy command สำหรับ dev
-              # ssh user@dev-server "cd /app && git pull && systemctl restart app"
-              ;;
-            qa)
-              echo "Deploying to QA Server..."
-              # เพิ่ม deploy command สำหรับ qa
-              ;;
-            sit)
-              echo "Deploying to SIT Server..."
-              # เพi่ม deploy command สำหรับ sit
-              ;;
-            uat)
-              echo "Deploying to UAT Server..."
-              # เพิ่ม deploy command สำหรับ uat
-              ;;
-            main)
-              echo "Deploying to Production..."
-              # เพิ่ม deploy command สำหรับ production
-              ;;
-          esac
-          
+          echo "Deploying to: $ENVIRONMENT"
           echo "✅ Deploy to $ENVIRONMENT completed"
+          # เพิ่ม deploy command จริงที่นี่
+          # Example: ssh user@server "cd /app && git pull && systemctl restart app"
