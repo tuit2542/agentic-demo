@@ -1,7 +1,6 @@
 # Changelog
 
 > Agentic Demo — Version history
-
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 ---
@@ -9,22 +8,66 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 ## [Unreleased]
 
 ### Added
-- Click analytics tracking (ClickRecord model, click history in StatsResponse, record_click and get_history in UrlStore)
-- Documentation split into multiple files (docs/)
-- Auto-update flow in .hermes.md
-- Monorepo structure: backend/ + frontend/
-- Next.js 16 + React 19 + TypeScript frontend
-- Frontend API client (src/lib/api.ts)
-- Frontend tests with Vitest + React Testing Library
-- CI pipeline: separate backend + frontend jobs
-- .env.example for environment config
-- Feature spec template with UI mockup section
-- Error handling documentation
-- Database schema documentation
-
+- Frontend: login page + custom ID input + TTL picker (v1.0.0 target)
 
 ### Changed
-- Consolidated all docs from PROJECT_DOCS.md to docs/
+- None
+
+### Fixed
+- None
+
+---
+
+## [1.0.0] - 2026-09-01
+
+### Added
+- URL expiration (TTL): `expires_in` field (1–31,536,000 sec), 410 Gone on redirect, `expired` flag + `expires_at` in stats
+- DELETE /{sid} endpoint (owner-only, 204/403/404)
+- SQLite migration: `expires_at` column with auto-migration
+- Custom short ID: `custom_id` field (3–20 chars, `[a-zA-Z0-9_-]+`, reserved path guard: health, stats, docs, redoc, auth, shorten, shorten-anon)
+- JWT authentication: register, login, me endpoints; bcrypt password hashing; PyJWT HS256 tokens; UserRepository abstraction (InMemory + SQLite)
+- JWT_SECRET, JWT_EXPIRE_MINUTES env vars
+- /shorten-anon endpoint (backward compatible, no auth required)
+- SQLite persistence: WAL mode, foreign keys, factory pattern via DATABASE_URL
+- Rate limiting: sliding window 100 req/60s default, X-RateLimit-* headers, RATE_LIMIT env override (e.g., "50/30"), exempt /stats, /health
+- TDD edge cases: duplicate URLs → different short IDs, short_id alphanumeric, click with referrer, stats increment after resolve, model validation
+- 123 backend tests + 14 frontend tests (137 total)
+- Monorepo migration: backend/ + frontend/ structure
+- FastAPI factory `create_app()`, CORS from env, health endpoint
+- Next.js 16 API proxy rewrite `/api/* → http://localhost:8000`
+- Frontend URL shortener form with shorten/copy/stats UI
+- Docker + docker-compose (Python 3.11-slim, Node 22-alpine multi-stage)
+- Documentation: API.md, ERROR_HANDLING.md, DATABASE_SCHEMA.md, WORKFLOW.md, AI_PROMPT_TEMPLATE.md
+- GitHub Actions CI for dev/qa/sit/uat/main + PRs
+- Branch protection: qa=1, sit=1, uat=1, main=2 approvals (human-gated promotion)
+- Configurable CORS_ORIGINS, BASE_URL via env
+- Pre-commit validation pipeline (6 checks)
+- .env.example with BACKEND_HOST/PORT, CORS_ORIGINS, NEXT_PUBLIC_API_URL, DATABASE_URL, RATE_LIMIT
+
+### Changed
+- Migrated from Flask to FastAPI (v0.2.0)
+- Consolidated docs from PROJECT_DOCS.md to docs/
+- Removed auto-promote workflow — switched to human-gated promotion
+
+### Fixed
+- Deploy workflow: fixed `python -m pytest tests/` path (working-directory: backend)
+- .coverage artifact leak: removed from all env branches, added to .gitignore
+- PR #27 merge conflicts: rewrote next.config.ts + page.tsx
+- fireEvent.click → fireEvent.submit in jsdom tests
+- ruff format + mypy clean on all files
+
+---
+
+## [0.3.0] - 2026-08-31
+
+### Added
+- SQLite persistence (WAL mode, urls + clicks tables, factory pattern)
+- Rate limiting (sliding window, X-RateLimit headers)
+- TDD edge case tests (duplicate URLs, alphanumeric short_id, referrer tracking, stats increment)
+- Click analytics (ClickRecord model, history in StatsResponse)
+
+### Changed
+- Refactored store layer: UrlStore + SqliteStore abstraction
 
 ---
 
@@ -58,4 +101,4 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 ---
 
-*Last updated: 2026-08-27*
+*Last updated: 2026-09-01*
