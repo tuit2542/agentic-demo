@@ -1,8 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+function useLocalStorage(key: string): string | null {
+  return useSyncExternalStore(
+    (callback) => {
+      window.addEventListener("storage", callback);
+      return () => window.removeEventListener("storage", callback);
+    },
+    () => localStorage.getItem(key),
+    () => null, // server snapshot
+  );
+}
 
 export default function Home() {
   const [url, setUrl] = useState("");
@@ -14,18 +25,12 @@ export default function Home() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Auth
-  const [token, setToken] = useState<string | null>(() => {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem("token");
-  });
+  // Auth — safe for SSR via useSyncExternalStore
+  const token = useLocalStorage("token");
+  const userEmail = useLocalStorage("userEmail");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState("");
-  const [userEmail, setUserEmail] = useState<string | null>(() => {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem("userEmail");
-  });
 
   // Stats
   const [stats, setStats] = useState<{ clicks: number; expired: boolean } | null>(null);
@@ -55,16 +60,14 @@ export default function Home() {
       const data = await res.json();
       localStorage.setItem("token", data.access_token);
       localStorage.setItem("userEmail", email);
-      setToken(data.access_token);
-      setUserEmail(email);
+      window.dispatchEvent(new Event("storage"));
     } catch (e) { setAuthError(e instanceof Error ? e.message : "Error"); }
   };
 
   const doLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userEmail");
-    setToken(null);
-    setUserEmail(null);
+    window.dispatchEvent(new Event("storage"));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
