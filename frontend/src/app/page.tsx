@@ -14,9 +14,6 @@ function useLocalStorage(key: string): string | null {
     () => null, // server snapshot
   );
 }
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
 export default function Home() {
   const [url, setUrl] = useState("");
   const [customId, setCustomId] = useState("");
