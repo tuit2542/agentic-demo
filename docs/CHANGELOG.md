@@ -11,10 +11,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 - Frontend: login page + custom ID input + TTL picker (v1.0.0 target)
 
 ### Changed
-- None
+- Frontend: fixed hydration mismatch by replacing useState+localStorage with useSyncExternalStore
 
 ### Fixed
-- None
+- Frontend API test: mock fetch to avoid network dependency in shortenUrl test
+- Frontend page: SSR-safe localStorage reads via useSyncExternalStore (no hydration mismatch)
+- Frontend: 17/17 tests passing, ESLint clean, tsc clean
 
 ---
 
