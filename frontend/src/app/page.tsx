@@ -14,7 +14,6 @@ function useLocalStorage(key: string): string | null {
     () => null, // server snapshot
   );
 }
-
 export default function Home() {
   const [url, setUrl] = useState("");
   const [customId, setCustomId] = useState("");
