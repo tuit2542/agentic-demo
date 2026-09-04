@@ -9,6 +9,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 ### Added
 - Frontend: login page + custom ID input + TTL picker (v1.0.0 target)
+- Analytics dashboard: GET /analytics/{sid} — referrer breakdown, clicks_by_hour, recent_clicks
+- Analytics: ReferrerStat, AnalyticsResponse Pydantic models
+- Analytics: UrlStore.get_analytics() aggregation method
+- Frontend: getAnalytics() client function + 2 tests
 
 ### Changed
 - Frontend: fixed hydration mismatch by replacing useState+localStorage with useSyncExternalStore
@@ -16,7 +20,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 ### Fixed
 - Frontend API test: mock fetch to avoid network dependency in shortenUrl test
 - Frontend page: SSR-safe localStorage reads via useSyncExternalStore (no hydration mismatch)
-- Frontend: 17/17 tests passing, ESLint clean, tsc clean
+- Frontend: 19/19 tests passing, ESLint clean, tsc clean
 
 ---
 
