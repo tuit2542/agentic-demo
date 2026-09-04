@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Agentic Demo — URL Shortener Architecture",
+    "output": "architecture.html",
+    "quality_profile": "showcase",
+    "viewBox": [1080, 640]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "User", "sublabel": "Browser", "pos": [40, 240], "size": [100, 50] },
+    { "id": "nextjs", "type": "frontend", "label": "Next.js 16", "sublabel": "React 19", "pos": [200, 240], "size": [120, 50], "tag": "Port 3000" },
+    { "id": "fastapi", "type": "backend", "label": "FastAPI", "sublabel": "Python 3.11", "pos": [400, 240], "size": [130, 50], "tag": "Port 8000" },
+    { "id": "jwt", "type": "security", "label": "JWT Auth", "sublabel": "HS256", "pos": [400, 100], "size": [110, 50] },
+    { "id": "bcrypt", "type": "security", "label": "Bcrypt", "sublabel": "Passwords", "pos": [580, 100], "size": [100, 50] },
+    { "id": "sqlite", "type": "database", "label": "SQLite", "sublabel": "WAL Mode", "pos": [660, 240], "size": [110, 50] },
+    { "id": "clicks", "type": "database", "label": "Click History", "sublabel": "Referrer", "pos": [660, 400], "size": [120, 50] },
+    { "id": "rate", "type": "security", "label": "Rate Limiter", "sublabel": "100/60s", "pos": [240, 400], "size": [110, 50] },
+    { "id": "ci", "type": "cloud", "label": "GitHub Actions", "sublabel": "CI/CD", "pos": [660, 540], "size": [120, 50] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Monorepo", "wraps": ["nextjs", "fastapi", "jwt", "bcrypt", "sqlite", "clicks", "rate"] }
+  ],
+  "connections": [
+    { "id": "c1", "from": "user", "to": "nextjs", "label": "HTTPS", "variant": "emphasis" },
+    { "id": "c2", "from": "nextjs", "to": "fastapi", "label": "REST", "variant": "emphasis" },
+    { "id": "c3", "from": "fastapi", "to": "jwt", "label": "verify", "variant": "security", "fromSide": "top", "toSide": "bottom" },
+    { "id": "c4", "from": "jwt", "to": "bcrypt" },
+    { "id": "c5", "from": "fastapi", "to": "sqlite", "label": "SQL" },
+    { "id": "c6", "from": "fastapi", "to": "clicks", "fromSide": "right", "toSide": "left", "variant": "dashed" },
+    { "id": "c7", "from": "fastapi", "to": "rate", "fromSide": "left", "toSide": "top", "variant": "dashed" },
+    { "id": "c8", "from": "ci", "to": "fastapi", "fromSide": "top", "toSide": "bottom", "label": "test", "variant": "dashed" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Frontend", "items": ["Next.js 16 + React 19", "Tailwind CSS + Vitest", "API proxy → backend"] },
+    { "dot": "emerald", "title": "Backend", "items": ["FastAPI + Pydantic v2", "SQLite WAL + Repository", "JWT + Rate Limiting"] },
+    { "dot": "rose", "title": "Quality Gates", "items": ["ruff + mypy + tsc", "pytest (139 + 21 tests)", "GitHub Actions CI"] }
+  ]
+}
