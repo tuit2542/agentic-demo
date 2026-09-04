@@ -71,6 +71,22 @@ class StatsResponse(BaseModel):
     expires_at: str | None = None
 
 
+class ReferrerStat(BaseModel):
+    referrer: str | None
+    count: int
+
+
+class AnalyticsResponse(BaseModel):
+    short_id: str
+    total_clicks: int
+    unique_referrers: int
+    top_referrers: list[ReferrerStat]
+    clicks_by_hour: dict[str, int]
+    recent_clicks: list[ClickRecord]
+    expired: bool = False
+    expires_at: str | None = None
+
+
 class ErrorResponse(BaseModel):
     detail: str
 

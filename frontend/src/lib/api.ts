@@ -68,6 +68,31 @@ export async function shortenUrl(
   return res.json();
 }
 
+export interface ReferrerStat {
+  referrer: string | null;
+  count: number;
+}
+
+export interface AnalyticsResponse {
+  short_id: string;
+  total_clicks: number;
+  unique_referrers: number;
+  top_referrers: ReferrerStat[];
+  clicks_by_hour: Record<string, number>;
+  recent_clicks: ClickRecord[];
+  expired: boolean;
+  expires_at: string | null;
+}
+
+export async function getAnalytics(sid: string): Promise<AnalyticsResponse> {
+  const res = await fetch(`${API_URL}/analytics/${sid}`);
+  if (!res.ok) {
+    const error: ErrorResponse = await res.json().catch(() => ({ detail: "Failed to get analytics" }));
+    throw new Error(error.detail || "Failed to get analytics");
+  }
+  return res.json();
+}
+
 export async function getStats(sid: string): Promise<StatsResponse> {
   const res = await fetch(`${API_URL}/stats/${sid}`);
   if (!res.ok) {

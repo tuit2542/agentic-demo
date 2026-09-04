@@ -13,7 +13,10 @@ from src.auth import (
 )
 from src.config import get_base_url, get_cors_origins, get_database_url
 from src.models import (
+    AnalyticsResponse,
+    ClickRecord,
     LoginRequest,
+    ReferrerStat,
     RegisterRequest,
     ShortenRequest,
     ShortenResponse,
@@ -177,7 +180,7 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=404, detail="Short URL not found")
         return JSONResponse(status_code=204, content=None)  # type: ignore
 
-    # ── Stats & Redirect ────────────────────────────────
+    # ── Stats & Analytics ───────────────────────────────
     @app.get("/stats/{sid}", response_model=StatsResponse)
     async def stats(sid: str) -> StatsResponse:
         original = store.peek(sid)
@@ -194,6 +197,22 @@ def create_app() -> FastAPI:
             clicks_history=history,
             expired=expired,
             expires_at=expires_at,
+        )
+
+    @app.get("/analytics/{sid}", response_model=AnalyticsResponse)
+    async def analytics(sid: str) -> AnalyticsResponse:
+        if store.peek(sid) is None:
+            raise HTTPException(status_code=404, detail="Short URL not found")
+        data = store.get_analytics(sid)
+        return AnalyticsResponse(
+            short_id=str(data["short_id"]),
+            total_clicks=int(data["total_clicks"]),  # type: ignore
+            unique_referrers=int(data["unique_referrers"]),  # type: ignore
+            top_referrers=[ReferrerStat(**r) for r in data["top_referrers"]],  # type: ignore
+            clicks_by_hour=dict(data["clicks_by_hour"]),  # type: ignore
+            recent_clicks=[ClickRecord(**r) for r in data["recent_clicks"]],  # type: ignore
+            expired=bool(data["expired"]),
+            expires_at=data["expires_at"],  # type: ignore
         )
 
     @app.get("/{sid}", response_class=RedirectResponse, status_code=307)
