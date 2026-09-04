@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { shortenUrl, getStats, getRedirectUrl } from "../lib/api";
+import {
+  shortenUrl,
+  getStats,
+  getRedirectUrl,
+  getAnalytics,
+} from "../lib/api";
 
 const mockFetch = vi.fn();
 vi.stubGlobal("fetch", mockFetch);
@@ -62,5 +67,29 @@ describe("API Client", () => {
     });
     const result = await getStats("abc123");
     expect(result.clicks).toBe(5);
+  });
+
+  it("getAnalytics throws on network error", async () => {
+    mockFetch.mockRejectedValueOnce(new Error("Failed to fetch"));
+    await expect(getAnalytics("abc123")).rejects.toThrow("Failed to fetch");
+  });
+
+  it("getAnalytics returns data on success", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        short_id: "abc123",
+        total_clicks: 10,
+        unique_referrers: 3,
+        top_referrers: [{ referrer: "https://twitter.com", count: 5 }],
+        clicks_by_hour: { "2026-09-01T10:00:00Z": 10 },
+        recent_clicks: [],
+        expired: false,
+        expires_at: null,
+      }),
+    });
+    const result = await getAnalytics("abc123");
+    expect(result.total_clicks).toBe(10);
+    expect(result.unique_referrers).toBe(3);
   });
 });
