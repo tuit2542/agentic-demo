@@ -105,6 +105,36 @@ class UrlStore:
     def get_owner(self, sid: str) -> int | None:
         return self._url_owner.get(sid)
 
+    def get_analytics(self, sid: str) -> dict[str, object]:
+        """Return aggregated analytics for a short URL."""
+        history = self._history.get(sid, [])
+        total = len(history)
+
+        # Referrer breakdown
+        ref_counts: dict[str | None, int] = {}
+        for rec in history:
+            ref_counts[rec.referrer] = ref_counts.get(rec.referrer, 0) + 1
+        unique = sum(1 for r in ref_counts if r is not None)
+        top = sorted(ref_counts.items(), key=lambda x: x[1], reverse=True)
+        top_referrers = [{"referrer": r, "count": c} for r, c in top]
+
+        # Clicks by hour (UTC)
+        clicks_by_hour: dict[str, int] = {}
+        for rec in history:
+            hour = rec.timestamp[:13] + ":00:00Z"  # truncate to hour
+            clicks_by_hour[hour] = clicks_by_hour.get(hour, 0) + 1
+
+        return {
+            "short_id": sid,
+            "total_clicks": total,
+            "unique_referrers": unique,
+            "top_referrers": top_referrers,
+            "clicks_by_hour": clicks_by_hour,
+            "recent_clicks": [r.model_dump() for r in history[-10:]],
+            "expired": self.is_expired(sid),
+            "expires_at": self.get_expires_at(sid),
+        }
+
     def delete(self, sid: str, user_id: int) -> bool:
         if sid not in self._urls:
             return False
