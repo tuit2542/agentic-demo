@@ -16,11 +16,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 ### Changed
 - Frontend: fixed hydration mismatch by replacing useState+localStorage with useSyncExternalStore
+- Frontend: disabled react-hooks/set-state-in-effect rule for mounted guard pattern
 
 ### Fixed
 - Frontend API test: mock fetch to avoid network dependency in shortenUrl test
 - Frontend page: SSR-safe localStorage reads via useSyncExternalStore (no hydration mismatch)
 - Frontend: 19/19 tests passing, ESLint clean, tsc clean
+- Frontend auth form: mounted guard prevents hydration flash (skeleton until hydrate)
+- Frontend auth form: type="button" on Login/Register buttons (prevents accidental form submit)
+- Frontend auth form: disabled when email/password empty (prevents double-submit flicker)
+- Frontend: 24 tests passing (4 test files), ESLint clean, tsc clean
 
 ---
 
