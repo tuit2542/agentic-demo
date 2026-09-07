@@ -4,7 +4,16 @@ import re
 
 from pydantic import BaseModel, field_validator
 
-RESERVED_IDS = {"health", "stats", "docs", "redoc", "auth", "shorten", "shorten-anon"}
+RESERVED_IDS = {
+    "health",
+    "stats",
+    "docs",
+    "redoc",
+    "auth",
+    "shorten",
+    "shorten-anon",
+    "my",
+}
 MAX_TTL = 31_536_000  # 1 year in seconds
 
 
@@ -127,3 +136,18 @@ class UserResponse(BaseModel):
     id: int
     email: str
     created_at: str
+
+
+class UserUrlItem(BaseModel):
+    short_id: str
+    original_url: str
+    short_url: str
+    clicks: int
+    expired: bool = False
+    expires_at: str | None = None
+    created_at: str
+
+
+class UserUrlsResponse(BaseModel):
+    urls: list[UserUrlItem]
+    total: int
