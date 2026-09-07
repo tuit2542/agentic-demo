@@ -4,7 +4,16 @@ import re
 
 from pydantic import BaseModel, field_validator
 
-RESERVED_IDS = {"health", "stats", "docs", "redoc", "auth", "shorten", "shorten-anon", "my"}
+RESERVED_IDS = {
+    "health",
+    "stats",
+    "docs",
+    "redoc",
+    "auth",
+    "shorten",
+    "shorten-anon",
+    "my",
+}
 MAX_TTL = 31_536_000  # 1 year in seconds
 
 
