@@ -14,6 +14,8 @@
 | `/auth/me` | GET | Bearer | - | `{"id": 1, "email": "user@example.com", "created_at": "..."}` | Current user |
 | `/shorten` | POST | Bearer | `{"url": "https://example.com", "custom_id": "my-link", "expires_in": 3600}` | `{"short_id": "my-link", "short_url": "http://localhost:8000/my-link", "expires_at": "2026-09-01T11:00:00Z"}` | สร้าง short URL (auth required) |
 | `/shorten-anon` | POST | - | `{"url": "https://example.com", "custom_id": "my-link", "expires_in": 3600}` | same as /shorten | สร้าง short URL (anonymous) |
+| `/my/urls` | GET | Bearer | - | `{"urls": [...], "total": 1}` | รายการ URLs ของ user (clicks, expired, expires_at) |
+| `/analytics/{sid}` | GET | - | - | `{"short_id": "...", "total_clicks": 5, "top_referrers": [...], "clicks_by_hour": {...}, "recent_clicks": [...], "expired": false, "expires_at": "..."}` | Analytics dashboard data |
 | `/stats/{sid}` | GET | - | - | `{"short_id": "my-link", "clicks": 5, "original_url": "https://example.com", "clicks_history": [...], "expired": false, "expires_at": null}` | ดูสถิติ |
 | `/{sid}` | GET | - | - | 307 Redirect → original URL | Redirect (410 if expired, 429 if rate limited) |
 | `/{sid}` | DELETE | Bearer | - | 204 No Content | Delete URL (owner only) |
@@ -31,7 +33,9 @@
 | `ShortenRequest` | `url: str` (http/https), `custom_id: str \| None` (3-20 chars, `[a-zA-Z0-9_-]+`), `expires_in: int \| None` (1–31536000) | Validate input ตอนสร้าง short URL |
 | `ShortenResponse` | `short_id: str`, `short_url: str`, `expires_at: str \| None` | Response ตอนสร้าง short URL |
 | `ClickRecord` | `timestamp: str`, `referrer: str \| None` | บันทึกรายละเอียดการคลิก |
-| `StatsResponse` | `short_id: str`, `clicks: int`, `original_url: str`, `clicks_history: list[ClickRecord]`, `expired: bool`, `expires_at: str \| None` | Response ตอนดูสถิติ |
+| `StatsResponse` | `short_id: str`, `clicks: int`, `original_url: str`, `clicks_history: list[ClickRecord]`, `expired: bool`, `expires_at: str | None` | Response ตอนดูสถิติ |
+| `ReferrerStat` | `referrer: str | None`, `count: int` | Referrer breakdown item |
+| `AnalyticsResponse` | `short_id: str`, `total_clicks: int`, `unique_referrers: int`, `top_referrers: list[ReferrerStat]`, `clicks_by_hour: dict[str, int]`, `recent_clicks: list[ClickRecord]`, `expired: bool`, `expires_at: str | None` | Analytics dashboard response |
 | `ErrorResponse` | `detail: str` | Error body |
 
 ---
@@ -49,7 +53,8 @@
 | `UrlStore` | `is_expired(short_id) -> bool` | เช็คว่าหมดอายุไหม |
 | `UrlStore` | `get_expires_at(short_id) -> str \| None` | ดูวันหมดอายุ |
 | `UrlStore` | `delete(short_id, user_id) -> bool` | ลบ URL (ต้องเป็น owner) |
-| `UrlStore` | `get_owner(short_id) -> int \| None` | ดู owner user_id |
+| `UrlStore` | `get_analytics(short_id) -> dict` | แกะ analytics (referrers, hourly clicks, recent 10) |
+| `UrlStore` | `list_by_owner(user_id) -> list[dict]` | รายการ URLs ของ user |
 | `UserRepository` | `create_user(email, password_hash) -> User` | สร้าง user |
 | `UserRepository` | `get_by_email(email) -> User \| None` | หา user ด้วย email |
 | `UserRepository` | `get_by_id(user_id) -> User \| None` | หา user ด้วย id |
@@ -152,8 +157,11 @@ curl -X DELETE http://localhost:8000/my-link \
 | `tests/test_auth.py` | 13 tests | ✅ |
 | `tests/test_custom_id.py` | 22 tests | ✅ |
 | `tests/test_expiration.py` | 21 tests | ✅ |
-| **Total** | **123 tests** | **✅ All pass** |
+| `tests/test_models_my_urls.py` | 3 tests | ✅ |
+| `tests/test_store_my_urls.py` | 6 tests | ✅ |
+| `tests/test_app_my_urls.py` | 5 tests | ✅ |
+| **Total** | **145 tests** | **✅ All pass** |
 
 ---
 
-*Last updated: 2026-09-01*
+*Last updated: 2026-09-07*
