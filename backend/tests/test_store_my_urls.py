@@ -1,4 +1,5 @@
 """TDD RED: list_by_owner store tests."""
+
 from __future__ import annotations
 
 from src.store import UrlStore
@@ -50,7 +51,9 @@ def test_list_by_owner_expired_flag() -> None:
     store = UrlStore()
     store.shorten("https://a.com", user_id=1, expires_in=1)
     # Force expired
-    store._expires_at[store.shorten("https://a.com", user_id=1)] = "2020-01-01T00:00:00Z"
+    store._expires_at[store.shorten("https://a.com", user_id=1)] = (
+        "2020-01-01T00:00:00Z"
+    )
     # Use the one that was forced expired
     sids = [k for k, v in store._url_owner.items() if v == 1]
     for sid in sids:
