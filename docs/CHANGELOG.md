@@ -114,3 +114,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 *Last updated: 2026-09-01*- Frontend analytics dashboard UI: page + 3 components (ClicksByHourChart, TopReferrers, RecentClicks)
 - Frontend: 37 tests passing (7 test files), ESLint clean, tsc clean
+- Backend: UserUrlItem, UserUrlsResponse Pydantic models
+- Backend: UrlStore.list_by_owner(user_id) + SqliteStore.list_by_owner()
+- Backend: GET /my/urls — user's own URLs with clicks/expiry
+- Frontend: getUserUrls() API client function
+- Frontend: /dashboard page with list + delete
