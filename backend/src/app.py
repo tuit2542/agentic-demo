@@ -23,6 +23,7 @@ from src.models import (
     StatsResponse,
     TokenResponse,
     UserResponse,
+    UserUrlsResponse,
 )
 from src.rate_limiter import get_rate_limiter
 
@@ -97,6 +98,28 @@ def create_app() -> FastAPI:
         return UserResponse(
             id=user_obj.id, email=user_obj.email, created_at=user_obj.created_at
         )
+
+    # ── My URLs ─────────────────────────────────────────
+    @app.get("/my/urls", response_model=UserUrlsResponse)
+    async def my_urls(user: dict = Depends(get_current_user)) -> UserUrlsResponse:
+        from src.models import UserUrlItem as _UserUrlItem
+
+        user_id = int(user["sub"])
+        items = store.list_by_owner(user_id)
+        base = get_base_url()
+        urls = [
+            _UserUrlItem(
+                short_id=str(item["short_id"]),
+                original_url=str(item["original_url"]),
+                short_url=f"{base}/{item['short_id']}",
+                clicks=int(item["clicks"]),  # type: ignore[arg-type]
+                expired=bool(item["expired"]),
+                expires_at=item["expires_at"],  # type: ignore[arg-type]
+                created_at=str(item["created_at"]),
+            )
+            for item in items
+        ]
+        return UserUrlsResponse(urls=urls, total=len(items))
 
     # ── URL Shortener (authenticated) ───────────────────
     @app.post("/shorten", response_model=ShortenResponse, status_code=201)

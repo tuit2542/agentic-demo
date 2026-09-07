@@ -135,6 +135,30 @@ class UrlStore:
             "expires_at": self.get_expires_at(sid),
         }
 
+    def list_by_owner(self, user_id: int) -> list[dict[str, object]]:
+        """Return all URLs owned by a user."""
+        results: list[dict[str, object]] = []
+        for sid, owner in self._url_owner.items():
+            if owner != user_id:
+                continue
+            url = self._urls[sid]
+            clicks = self._clicks.get(sid, 0)
+            expired = self.is_expired(sid)
+            expires_at = self.get_expires_at(sid)
+            created = self._created_at.get(sid, "")
+            results.append(
+                {
+                    "short_id": sid,
+                    "original_url": url,
+                    "short_url": f"http://localhost:8000/{sid}",
+                    "clicks": clicks,
+                    "expired": expired,
+                    "expires_at": expires_at,
+                    "created_at": created,
+                }
+            )
+        return results
+
     def delete(self, sid: str, user_id: int) -> bool:
         if sid not in self._urls:
             return False
