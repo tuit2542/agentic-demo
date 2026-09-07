@@ -1,90 +1,78 @@
-# Feature: Analytics Dashboard
-
-priority: P1
-status: ready
-created: 2026-09-01
+# Analytics Dashboard
 
 ## User Story
-As a user, I want to see click analytics for my short URLs — referrer breakdown, time-based trends, and click history — so that I can understand where my traffic comes from.
-
-## API Contract
-
-### Endpoint: `GET /analytics/{sid}`
-```
-Response 200:
-{
-  "short_id": "abc123",
-  "total_clicks": 42,
-  "unique_referrers": 5,
-  "top_referrers": [
-    { "referrer": "https://twitter.com", "count": 18 },
-    { "referrer": "https://facebook.com", "count": 12 },
-    { "referrer": null, "count": 8 },
-    { "referrer": "https://github.com", "count": 4 }
-  ],
-  "clicks_by_hour": {
-    "2026-09-01T08:00:00Z": 5,
-    "2026-09-01T09:00:00Z": 12,
-    "2026-09-01T10:00:00Z": 25
-  },
-  "recent_clicks": [
-    { "timestamp": "2026-09-01T10:30:00Z", "referrer": "https://twitter.com" }
-  ],
-  "expired": false,
-  "expires_at": "2026-09-08T10:00:00Z"
-}
-
-Response 404:
-  { "detail": "Short URL not found" }
-```
-
-### Pydantic Models
-```python
-class ReferrerStat(BaseModel):
-    referrer: str | None
-    count: int
-
-class AnalyticsResponse(BaseModel):
-    short_id: str
-    total_clicks: int
-    unique_referrers: int
-    top_referrers: list[ReferrerStat]
-    clicks_by_hour: dict[str, int]
-    recent_clicks: list[ClickRecord]
-    expired: bool = False
-    expires_at: str | None = None
-```
+เป็นผู้ใช้ URL shortener แล้วอยากดู analytics ของ link ตัวเองว่ามีคน click กี่ครั้ง, referrer อะไรบ้าง, click pattern เป็นยังไง
 
 ## Acceptance Criteria
-- [ ] AC-1: Given a valid short_id with clicks, when GET /analytics/{sid}, then returns total_clicks, referrer breakdown, clicks_by_hour
-- [ ] AC-2: Given a valid short_id with no clicks, when GET /analytics/{sid}, then returns total_clicks=0 with empty referrers
-- [ ] AC-3: Given a non-existent short_id, when GET /analytics/{sid}, then returns 404
-- [ ] AC-4: Given clicks with mixed referrers (some null), when GET /analytics/{sid}, then unique_referrers counts non-null referrers only
-- [ ] AC-5: Given clicks within the same hour, when GET /analytics/{sid}, then clicks_by_hour groups them correctly
+Given ผู้ใช้缩短 link แล้วมี click data
+When กดปุ่ม "Analytics" บน link ที่สร้างไว้
+Then แสดง dashboard ที่มี:
+- **Total clicks** — ตัวเลข total ชัดเจน
+- **Unique referrers** — กี่ referrer ต่างกัน
+- **Top referrers** — bar chart / table แสดง top referrers พร้อม count
+- **Clicks by hour** — bar chart แสดง click pattern แต่ละชั่วโมง (24 ชั่วโมง)
+- **Recent clicks** — table แสดง timestamp + referrer ของ click ล่าสุด 10 ตัว
+- **Expired status** — แสดงว่า link หมดอายุหรือยัง
+- **Expires at** — ถ้ามี TTL แสดงวันหมดอายุ
 
-## Store Changes
-| Operation | Method | Input | Output |
-|-----------|--------|-------|--------|
-| read | `store.get_analytics(sid)` | `str` | `AnalyticsData` (dataclass) |
+## UI Layout
+```
+┌─────────────────────────────────────────────┐
+│  Analytics: abc123                          │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  │
+│  │ Total    │  │ Unique   │  │ Status   │  │
+│  │ Clicks   │  │ Referrers│  │ Active ✓ │  │
+│  │    42    │  │    8     │  │          │  │
+│  └──────────┘  └──────────┘  └──────────┘  │
+│                                             │
+│  Top Referrers          Clicks by Hour      │
+│  ┌──────────────────┐  ┌──────────────────┐ │
+│  │ direct    ██████ │  │  █              │ │
+│  │ twitter   ████   │  │  ██    █        │ │
+│  │ github    ██     │  │  ███  ███       │ │
+│  │ other     █      │  │  ██████████     │ │
+│  └──────────────────┘  └──────────────────┘ │
+│                                             │
+│  Recent Clicks                              │
+│  ┌──────────────────────────────────────┐   │
+│  │ 14:32  direct          —             │   │
+│  │ 14:28  twitter.com     —             │   │
+│  │ 14:15  github.com      —             │   │
+│  └──────────────────────────────────────┘   │
+│                                             │
+│  Expires: 2026-09-11 15:00                  │
+│  [← Back] [Copy Link] [Delete]             │
+└─────────────────────────────────────────────┘
+```
+
+## API Contract
+```typescript
+GET /analytics/{sid}
+Response: AnalyticsResponse {
+  short_id: string
+  total_clicks: number
+  unique_referrers: number
+  top_referrers: ReferrerStat[]  // { referrer, count }
+  clicks_by_hour: Record<string, number>  // "14" -> 5
+  recent_clicks: ClickRecord[]  // { timestamp, referrer }
+  expired: boolean
+  expires_at: string | null
+}
+```
 
 ## Files to Modify
-- [ ] `backend/src/models.py` — add ReferrerStat, AnalyticsResponse
-- [ ] `backend/src/store.py` — add get_analytics() method
-- [ ] `backend/src/store_sqlite.py` — add get_analytics() method
-- [ ] `backend/src/app.py` — add GET /analytics/{sid} endpoint
-- [ ] `backend/tests/test_analytics.py` — analytics tests (RED→GREEN→REFACTOR)
-- [ ] `frontend/src/app/page.tsx` — analytics card UI
-- [ ] `frontend/src/lib/api.ts` — getAnalytics() client function
-- [ ] `frontend/src/__tests__/api.test.ts` — getAnalytics tests
+- `frontend/src/app/analytics/[sid]/page.tsx` — ใหม่ (Next.js dynamic route)
+- `frontend/src/components/ClicksByHourChart.tsx` — bar chart component
+- `frontend/src/components/TopReferrers.tsx` — referrer list
+- `frontend/src/components/RecentClicks.tsx` — recent clicks table
+- `frontend/src/lib/api.ts` — มี getAnalytics() แล้ว ✅
 
 ## TDD Checklist
-- [ ] Write failing tests first (RED)
-- [ ] Minimal implementation (GREEN)
-- [ ] Refactor (REFACTOR)
-- [ ] All quality gates pass
-
-## Out of Scope
-- Real-time WebSocket updates
-- CSV/PDF export
-- Date range filtering (future enhancement)
-- Geographic analytics
+- [ ] RED: test analytics page renders with data
+- [ ] RED: test clicks by hour bar chart
+- [ ] RED: test top referrers display
+- [ ] RED: test recent clicks table
+- [ ] RED: test expired status display
+- [ ] RED: test error state when analytics fails
+- [ ] GREEN: implement all components
+- [ ] REFACTOR: clean up
