@@ -9,14 +9,23 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 ### Added
 - Frontend: login page + custom ID input + TTL picker (v1.0.0 target)
+- Analytics dashboard: GET /analytics/{sid} — referrer breakdown, clicks_by_hour, recent_clicks
+- Analytics: ReferrerStat, AnalyticsResponse Pydantic models
+- Analytics: UrlStore.get_analytics() aggregation method
+- Frontend: getAnalytics() client function + 2 tests
 
 ### Changed
 - Frontend: fixed hydration mismatch by replacing useState+localStorage with useSyncExternalStore
+- Frontend: disabled react-hooks/set-state-in-effect rule for mounted guard pattern
 
 ### Fixed
 - Frontend API test: mock fetch to avoid network dependency in shortenUrl test
 - Frontend page: SSR-safe localStorage reads via useSyncExternalStore (no hydration mismatch)
-- Frontend: 17/17 tests passing, ESLint clean, tsc clean
+- Frontend: 19/19 tests passing, ESLint clean, tsc clean
+- Frontend auth form: mounted guard prevents hydration flash (skeleton until hydrate)
+- Frontend auth form: type="button" on Login/Register buttons (prevents accidental form submit)
+- Frontend auth form: disabled when email/password empty (prevents double-submit flicker)
+- Frontend: 24 tests passing (4 test files), ESLint clean, tsc clean
 
 ---
 
@@ -103,4 +112,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 ---
 
-*Last updated: 2026-09-01*
+*Last updated: 2026-09-01*- Frontend analytics dashboard UI: page + 3 components (ClicksByHourChart, TopReferrers, RecentClicks)
+- Frontend: 37 tests passing (7 test files), ESLint clean, tsc clean
+- Backend: UserUrlItem, UserUrlsResponse Pydantic models
+- Backend: UrlStore.list_by_owner(user_id) + SqliteStore.list_by_owner()
+- Backend: GET /my/urls — user's own URLs with clicks/expiry
+- Frontend: getUserUrls() API client function
+- Frontend: /dashboard page with list + delete

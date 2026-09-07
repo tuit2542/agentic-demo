@@ -13,13 +13,17 @@ from src.auth import (
 )
 from src.config import get_base_url, get_cors_origins, get_database_url
 from src.models import (
+    AnalyticsResponse,
+    ClickRecord,
     LoginRequest,
+    ReferrerStat,
     RegisterRequest,
     ShortenRequest,
     ShortenResponse,
     StatsResponse,
     TokenResponse,
     UserResponse,
+    UserUrlsResponse,
 )
 from src.rate_limiter import get_rate_limiter
 
@@ -94,6 +98,28 @@ def create_app() -> FastAPI:
         return UserResponse(
             id=user_obj.id, email=user_obj.email, created_at=user_obj.created_at
         )
+
+    # ── My URLs ─────────────────────────────────────────
+    @app.get("/my/urls", response_model=UserUrlsResponse)
+    async def my_urls(user: dict = Depends(get_current_user)) -> UserUrlsResponse:
+        from src.models import UserUrlItem as _UserUrlItem
+
+        user_id = int(user["sub"])
+        items = store.list_by_owner(user_id)
+        base = get_base_url()
+        urls = [
+            _UserUrlItem(
+                short_id=str(item["short_id"]),
+                original_url=str(item["original_url"]),
+                short_url=f"{base}/{item['short_id']}",
+                clicks=int(item["clicks"]),  # type: ignore[arg-type]
+                expired=bool(item["expired"]),
+                expires_at=item["expires_at"],  # type: ignore[arg-type]
+                created_at=str(item["created_at"]),
+            )
+            for item in items
+        ]
+        return UserUrlsResponse(urls=urls, total=len(items))
 
     # ── URL Shortener (authenticated) ───────────────────
     @app.post("/shorten", response_model=ShortenResponse, status_code=201)
@@ -177,7 +203,7 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=404, detail="Short URL not found")
         return JSONResponse(status_code=204, content=None)  # type: ignore
 
-    # ── Stats & Redirect ────────────────────────────────
+    # ── Stats & Analytics ───────────────────────────────
     @app.get("/stats/{sid}", response_model=StatsResponse)
     async def stats(sid: str) -> StatsResponse:
         original = store.peek(sid)
@@ -194,6 +220,22 @@ def create_app() -> FastAPI:
             clicks_history=history,
             expired=expired,
             expires_at=expires_at,
+        )
+
+    @app.get("/analytics/{sid}", response_model=AnalyticsResponse)
+    async def analytics(sid: str) -> AnalyticsResponse:
+        if store.peek(sid) is None:
+            raise HTTPException(status_code=404, detail="Short URL not found")
+        data = store.get_analytics(sid)
+        return AnalyticsResponse(
+            short_id=str(data["short_id"]),
+            total_clicks=int(data["total_clicks"]),  # type: ignore
+            unique_referrers=int(data["unique_referrers"]),  # type: ignore
+            top_referrers=[ReferrerStat(**r) for r in data["top_referrers"]],  # type: ignore
+            clicks_by_hour=dict(data["clicks_by_hour"]),  # type: ignore
+            recent_clicks=[ClickRecord(**r) for r in data["recent_clicks"]],  # type: ignore
+            expired=bool(data["expired"]),
+            expires_at=data["expires_at"],  # type: ignore
         )
 
     @app.get("/{sid}", response_class=RedirectResponse, status_code=307)

@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Promotion Flow — feat → dev → qa → sit → uat → main",
+    "output": "workflow.html",
+    "quality_profile": "standard"
+  },
+  "lanes": [
+    { "id": "dev", "label": "AI Agent" },
+    { "id": "pipeline", "label": "CI + Environments" }
+  ],
+  "phases": [
+    { "id": "build", "label": "Build + Validate", "fromCol": 0, "toCol": 1 },
+    { "id": "promote", "label": "Promote to Production", "fromCol": 2, "toCol": 5 }
+  ],
+  "groups": [
+    { "id": "tdd", "label": "TDD", "lane": "dev", "fromCol": 0, "toCol": 0 }
+  ],
+  "mainPath": ["feat", "lint", "pr", "ci", "qa", "sit", "uat", "main"],
+  "nodes": [
+    { "id": "feat", "lane": "dev", "col": 0, "width": 64, "type": "frontend", "label": "feat/", "sublabel": "branch" },
+    { "id": "lint", "lane": "pipeline", "col": 0, "width": 76, "type": "security", "label": "Lint+Type", "sublabel": "ruff mypy tsc" },
+    { "id": "pr", "lane": "dev", "col": 1, "width": 64, "type": "frontend", "label": "PR dev", "sublabel": "squash" },
+    { "id": "ci", "lane": "pipeline", "col": 1, "width": 52, "type": "backend", "label": "CI", "sublabel": "pytest", "tag": "blocking" },
+    { "id": "qa", "lane": "pipeline", "col": 2, "width": 52, "type": "cloud", "label": "qa", "sublabel": "auto" },
+    { "id": "sit", "lane": "pipeline", "col": 3, "width": 52, "type": "cloud", "label": "sit", "sublabel": "1 ap" },
+    { "id": "uat", "lane": "pipeline", "col": 4, "width": 52, "type": "cloud", "label": "uat", "sublabel": "1 ap" },
+    { "id": "main", "lane": "pipeline", "col": 5, "width": 64, "type": "database", "label": "main", "sublabel": "2 ap" }
+  ],
+  "edges": [
+    { "from": "feat", "to": "lint", "variant": "emphasis" },
+    { "from": "lint", "to": "pr", "variant": "dashed", "route": "outside-right", "fromSide": "right", "toSide": "left" },
+    { "from": "pr", "to": "ci", "variant": "emphasis" },
+    { "from": "ci", "to": "qa", "variant": "emphasis" },
+    { "from": "qa", "to": "sit", "variant": "emphasis" },
+    { "from": "sit", "to": "uat", "variant": "emphasis" },
+    { "from": "uat", "to": "main", "variant": "emphasis" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Agent Scope", "items": ["Create feat/ branch", "TDD: RED GREEN REFACTOR", "Lint + type check", "PR to dev (squash)"] },
+    { "dot": "emerald", "title": "Approval Gates", "items": ["dev: CI pass only", "qa: CI pass only", "sit: 1 human approval", "uat: 1 human approval", "main: 2 human approvals"] },
+    { "dot": "rose", "title": "CI Pipeline", "items": ["pytest 139 tests", "ruff + mypy + tsc", "squash merge required"] }
+  ]
+}
