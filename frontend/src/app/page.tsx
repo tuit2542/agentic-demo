@@ -17,7 +17,6 @@ function useLocalStorage(key: string): string | null {
     },
     () => localStorage.getItem(key),
     () => null,
-  );
 }
 
 export default function Home() {
