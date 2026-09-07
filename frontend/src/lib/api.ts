@@ -41,6 +41,21 @@ export interface UserResponse {
   created_at: string;
 }
 
+export interface UserUrlItem {
+  short_id: string;
+  original_url: string;
+  short_url: string;
+  clicks: number;
+  expired: boolean;
+  expires_at: string | null;
+  created_at: string;
+}
+
+export interface UserUrlsResponse {
+  urls: UserUrlItem[];
+  total: number;
+}
+
 function getHeaders(token?: string): Record<string, string> {
   const h: Record<string, string> = { "Content-Type": "application/json" };
   if (token) h["Authorization"] = `Bearer ${token}`;
@@ -141,4 +156,15 @@ export async function deleteUrl(sid: string, token: string): Promise<void> {
     const err: ErrorResponse = await res.json().catch(() => ({ detail: "Delete failed" }));
     throw new Error(err.detail);
   }
+}
+
+export async function getUserUrls(token: string): Promise<UserUrlsResponse> {
+  const res = await fetch(`${API_URL}/my/urls`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const error: ErrorResponse = await res.json().catch(() => ({ detail: "Failed to get URLs" }));
+    throw new Error(error.detail || "Failed to get URLs");
+  }
+  return res.json();
 }

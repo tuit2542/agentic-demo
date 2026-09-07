@@ -186,6 +186,35 @@ class SqliteStore:
         self._conn.commit()
         return True
 
+    def list_by_owner(self, user_id: int) -> list[dict[str, object]]:
+        """Return all URLs owned by a user."""
+        rows = self._conn.execute(
+            """
+            SELECT short_id, original_url, user_id, created_at, expires_at,
+                   (SELECT COUNT(*) FROM clicks WHERE url_id = urls.id) as clicks
+            FROM urls
+            WHERE user_id = ?
+            ORDER BY created_at DESC
+            """,
+            (user_id,),
+        ).fetchall()
+        results: list[dict[str, object]] = []
+        for r in rows:
+            sid = r["short_id"]
+            expired = self.is_expired(sid)
+            results.append(
+                {
+                    "short_id": sid,
+                    "original_url": r["original_url"],
+                    "short_url": f"http://localhost:8000/{sid}",
+                    "clicks": r["clicks"],
+                    "expired": expired,
+                    "expires_at": r["expires_at"],
+                    "created_at": r["created_at"],
+                }
+            )
+        return results
+
     def close(self) -> None:
         self._conn.close()
 
