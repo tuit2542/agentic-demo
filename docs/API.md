@@ -12,12 +12,12 @@
 | `/auth/register` | POST | - | `{"email": "user@example.com", "password": "password123"}` | `{"id": 1, "email": "user@example.com", "created_at": "2026-09-01T10:00:00Z"}` | Register user |
 | `/auth/login` | POST | - | `{"email": "user@example.com", "password": "password123"}` | `{"access_token": "eyJ...", "token_type": "bearer"}` | Login → JWT |
 | `/auth/me` | GET | Bearer | - | `{"id": 1, "email": "user@example.com", "created_at": "..."}` | Current user |
-| `/shorten` | POST | Bearer | `{"url": "https://example.com", "custom_id": "my-link", "expires_in": 3600}` | `{"short_id": "my-link", "short_url": "http://localhost:8000/my-link", "expires_at": "2026-09-01T11:00:00Z"}` | สร้าง short URL (auth required) |
-| `/shorten-anon` | POST | - | `{"url": "https://example.com", "custom_id": "my-link", "expires_in": 3600}` | same as /shorten | สร้าง short URL (anonymous) |
+| `/shorten` | POST | Bearer | `{"url": "https://example.com", "custom_id": "my-link", "expires_in": 3600, "password": "secret"}` | `{"short_id": "my-link", "short_url": "...", "expires_at": "...", "is_protected": true}` | สร้าง short URL (auth required, optional password) |
+| `/shorten-anon` | POST | - | `{"url": "https://example.com", "custom_id": "my-link", "expires_in": 3600, "password": "secret"}` | same as /shorten | สร้าง short URL (anonymous, optional password) |
 | `/my/urls` | GET | Bearer | - | `{"urls": [...], "total": 1}` | รายการ URLs ของ user (clicks, expired, expires_at) |
 | `/analytics/{sid}` | GET | - | - | `{"short_id": "...", "total_clicks": 5, "top_referrers": [...], "clicks_by_hour": {...}, "recent_clicks": [...], "expired": false, "expires_at": "..."}` | Analytics dashboard data |
 | `/stats/{sid}` | GET | - | - | `{"short_id": "my-link", "clicks": 5, "original_url": "https://example.com", "clicks_history": [...], "expired": false, "expires_at": null}` | ดูสถิติ |
-| `/{sid}` | GET | - | - | 307 Redirect → original URL | Redirect (410 if expired, 429 if rate limited) |
+| `/{sid}` | GET | - | - | 307 Redirect → original URL | Redirect (401 if password required/invalid, 410 if expired, 429 if rate limited) |
 | `/{sid}` | DELETE | Bearer | - | 204 No Content | Delete URL (owner only) |
 
 ---
@@ -30,8 +30,8 @@
 | `LoginRequest` | `email: str`, `password: str` | Login input |
 | `UserResponse` | `id: int`, `email: str`, `created_at: str` | User info |
 | `TokenResponse` | `access_token: str`, `token_type: str = "bearer"` | JWT response |
-| `ShortenRequest` | `url: str` (http/https), `custom_id: str \| None` (3-20 chars, `[a-zA-Z0-9_-]+`), `expires_in: int \| None` (1–31536000) | Validate input ตอนสร้าง short URL |
-| `ShortenResponse` | `short_id: str`, `short_url: str`, `expires_at: str \| None` | Response ตอนสร้าง short URL |
+| `ShortenRequest` | `url: str` (http/https), `custom_id: str \| None` (3-20 chars, `[a-zA-Z0-9_-]+`), `expires_in: int \| None` (1–31536000), `password: str \| None` (optional) | Validate input ตอนสร้าง short URL |
+| `ShortenResponse` | `short_id: str`, `short_url: str`, `expires_at: str \| None`, `is_protected: bool` | Response ตอนสร้าง short URL |
 | `ClickRecord` | `timestamp: str`, `referrer: str \| None` | บันทึกรายละเอียดการคลิก |
 | `StatsResponse` | `short_id: str`, `clicks: int`, `original_url: str`, `clicks_history: list[ClickRecord]`, `expired: bool`, `expires_at: str | None` | Response ตอนดูสถิติ |
 | `ReferrerStat` | `referrer: str | None`, `count: int` | Referrer breakdown item |
@@ -44,7 +44,7 @@
 
 | Class | Methods | Description |
 |-------|---------|-------------|
-| `UrlStore` | `shorten(url, user_id?, custom_id?, expires_in?) -> short_id` | สร้าง short ID |
+| `UrlStore` | `shorten(url, user_id?, custom_id?, expires_in?, password?) -> short_id` | สร้าง short ID |
 | `UrlStore` | `resolve(short_id) -> url \| None` | หา original URL (None ถ้าหมดอายุ) |
 | `UrlStore` | `stats(short_id) -> int` | ดู click count |
 | `UrlStore` | `record_click(short_id, referrer?) -> ClickRecord` | บันทึก click history |
@@ -53,6 +53,8 @@
 | `UrlStore` | `is_expired(short_id) -> bool` | เช็คว่าหมดอายุไหม |
 | `UrlStore` | `get_expires_at(short_id) -> str \| None` | ดูวันหมดอายุ |
 | `UrlStore` | `delete(short_id, user_id) -> bool` | ลบ URL (ต้องเป็น owner) |
+| `UrlStore` | `is_protected(short_id) -> bool` | เช็คว่าลิงก์มีรหัสผ่านไหม |
+| `UrlStore` | `verify_password(short_id, password) -> bool` | ตรวจรหัสผ่าน (bcrypt) |
 | `UrlStore` | `get_analytics(short_id) -> dict` | แกะ analytics (referrers, hourly clicks, recent 10) |
 | `UrlStore` | `list_by_owner(user_id) -> list[dict]` | รายการ URLs ของ user |
 | `UserRepository` | `create_user(email, password_hash) -> User` | สร้าง user |
@@ -99,6 +101,17 @@ curl -X POST http://localhost:8000/shorten \
   "short_url": "http://localhost:8000/my-link",
   "expires_at": "2026-09-01T11:00:00Z"
 }
+```
+
+**Password-protected link:**
+```bash
+curl -X POST http://localhost:8000/shorten-anon \n  -H "Content-Type: application/json" \n  -d '{"url": "https://example.com", "password": "secret123"}'
+# → {"short_id": "aB3x9Q", "short_url": "http://localhost:8000/aB3x9Q", "is_protected": true}
+
+# Redirect with password (query param or header)
+curl -I "http://localhost:8000/aB3x9Q?password=secret123"
+curl -I http://localhost:8000/aB3x9Q -H "X-Link-Password: secret123"
+# 401 {"detail": "Password required"} / {"detail": "Invalid password"} if wrong
 ```
 
 **ดูสถิติ:**
@@ -160,8 +173,9 @@ curl -X DELETE http://localhost:8000/my-link \
 | `tests/test_models_my_urls.py` | 3 tests | ✅ |
 | `tests/test_store_my_urls.py` | 6 tests | ✅ |
 | `tests/test_app_my_urls.py` | 5 tests | ✅ |
-| **Total** | **145 tests** | **✅ All pass** |
+| `tests/test_password_protection.py` | 10 tests | ✅ |
+| **Total** | **155 tests** | **✅ All pass** |
 
 ---
 
-*Last updated: 2026-09-07*
+*Last updated: 2026-09-08*

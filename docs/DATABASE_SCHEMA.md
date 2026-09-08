@@ -32,7 +32,8 @@ CREATE TABLE urls (
     short_id    TEXT    NOT NULL UNIQUE,    -- 6-char alphanumeric
     original_url TEXT   NOT NULL,
     created_at  TEXT    NOT NULL DEFAULT (datetime('now')),
-    expires_at  TEXT    DEFAULT NULL        -- NULL = never expires
+    expires_at  TEXT    DEFAULT NULL,       -- NULL = never expires
+    password_hash TEXT  DEFAULT NULL        -- NULL = no password, bcrypt hash if protected
 );
 
 CREATE INDEX idx_short_id ON urls(short_id);
@@ -61,7 +62,8 @@ urls (1) ──── (many) clicks
   ├── short_id       ├── url_id (FK)
   ├── original_url   ├── clicked_at
   ├── created_at     ├── ip_address
-  └── expires_at     └── user_agent
+  ├── expires_at     ├── user_agent
+  └── password_hash  └──
 ```
 
 ---
@@ -108,12 +110,20 @@ from abc import ABC, abstractmethod
 
 class BaseStore(ABC):
     @abstractmethod
-    def shorten(self, url: str) -> str:
+    def shorten(self, url: str, password: str | None = None) -> str:
         """Create short URL, return short_id."""
 
     @abstractmethod
     def resolve(self, short_id: str) -> str | None:
         """Resolve short_id to original URL."""
+
+    @abstractmethod
+    def verify_password(self, short_id: str, password: str) -> bool:
+        """Verify password for protected link."""
+
+    @abstractmethod
+    def is_protected(self, short_id: str) -> bool:
+        """Check if link is password-protected."""
 
     @abstractmethod
     def stats(self, short_id: str) -> dict:
@@ -122,4 +132,4 @@ class BaseStore(ABC):
 
 ---
 
-*Last updated: 2026-08-28*
+*Last updated: 2026-09-08 — added password_hash column for password-protected links*

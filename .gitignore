@@ -26,3 +26,4 @@ dist/
 .idea/
 *.swp
 *.swo
+backend/uv.lock
