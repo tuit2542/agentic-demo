@@ -4,7 +4,7 @@
 
 ---
 
-## Current State (2026-09-01)
+## Current State (2026-09-07)
 
 ### Project
 - **Repo:** https://github.com/tuit2542/agentic-demo
@@ -12,9 +12,9 @@
 - **Backend:** Python 3.11, FastAPI, Pydantic v2, uvicorn, SQLite (WAL), bcrypt, PyJWT
 - **Frontend:** Next.js 16, React 19, TypeScript, Tailwind CSS
 - **Branching:** feat/* → dev → qa → sit → uat → main (human-gated promotion)
-- **Tags:** v0.1.0 → v0.6.0
+- **Tags:** v0.1.0 → v1.0.0
 
-### What's Done (v0.6.0 — 123 backend + 14 frontend tests)
+### What's Done (v1.0.0 — 145 backend + 45 frontend tests)
 
 | # | Feature | Status |
 |---|---------|--------|
@@ -35,14 +35,17 @@
 | 15 | Branch protection (qa=1, sit=1, uat=1, main=2 approvals) | ✅ |
 | 16 | Configurable CORS + base URL + JWT secret (env) | ✅ |
 | 17 | Pre-commit validation pipeline | ✅ |
+| 18 | Analytics API: GET /analytics/{sid} (referrers, hourly clicks, recent) | ✅ |
+| 19 | Analytics Dashboard UI: /analytics/[sid] page + 3 components | ✅ |
+| 20 | My Links API: GET /my/urls (owner-only, clicks, expiry) | ✅ |
+| 21 | My Links Dashboard UI: /dashboard page with list + delete | ✅ |
 
 ### Pending
 | # | Feature | Priority | Spec |
 |---|---------|----------|------|
 | 1 | Frontend: login + custom ID + TTL picker | 🟡 Medium | ยังไม่มี spec |
 | 2 | JWT refresh token | 🟢 Low | ยังไม่มี spec |
-| 3 | Analytics dashboard | 🟢 Low | ยังไม่มี spec |
-| 4 | URL bulk import | 🟢 Low | ยังไม่มี spec |
+| 3 | URL bulk import | 🟢 Low | ยังไม่มี spec |
 
 ---
 
@@ -89,10 +92,10 @@ curl -X POST http://localhost:8000/shorten \
 | Lint | `ruff check src/ tests/` | ✅ |
 | Format | `ruff format --check src/ tests/` | ✅ |
 | Type check | `mypy src/` | ✅ |
-| Tests | `pytest tests/ -q` | ✅ (123 passed) |
+| Tests | `pytest tests/ -q` | ✅ (145 passed) |
 | Frontend lint | `npm run lint` | ✅ |
 | Frontend type | `npx tsc --noEmit` | ✅ |
-| Frontend test | `npm run test` | ✅ (14 passed) |
+| Frontend test | `npm run test` | ✅ (45 passed) |
 
 ---
 
@@ -126,4 +129,4 @@ main (prod) ← 2 approvals
 
 ---
 
-*Last updated: 2026-09-01*
+*Last updated: 2026-09-07*
