@@ -24,6 +24,7 @@ export default function Home() {
   const [url, setUrl] = useState("");
   const [customId, setCustomId] = useState("");
   const [expiresIn, setExpiresIn] = useState("");
+  const [linkPassword, setLinkPassword] = useState("");
   const [shortUrl, setShortUrl] = useState("");
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
   const [shortId, setShortId] = useState("");
@@ -108,6 +109,7 @@ export default function Home() {
       const body: Record<string, unknown> = { url };
       if (customId.trim()) body.custom_id = customId.trim();
       if (expiresIn.trim()) body.expires_in = parseInt(expiresIn, 10);
+      if (linkPassword.trim()) body.password = linkPassword.trim();
       const endpoint = token ? "/shorten" : "/shorten-anon";
       const headers: Record<string, string> = { "Content-Type": "application/json" };
       if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -252,6 +254,13 @@ export default function Home() {
             <option value="2592000">30 days</option>
           </select>
         </div>
+        <input
+          type="password"
+          value={linkPassword}
+          onChange={(e) => setLinkPassword(e.target.value)}
+          placeholder="Password (optional — protects the link)"
+          className="w-full px-4 py-2 border rounded-lg text-sm"
+        />
         <button
           type="submit"
           disabled={loading}

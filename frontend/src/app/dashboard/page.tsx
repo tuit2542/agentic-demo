@@ -33,7 +33,7 @@ export default function DashboardPage() {
     try {
       await deleteUrl(sid, token);
       setUrls((prev) => prev.filter((u) => u.short_id !== sid));
-    } catch (err) {
+    } catch {
       alert("Failed to delete");
     }
   };

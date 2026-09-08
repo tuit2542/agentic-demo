@@ -1,12 +1,14 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export interface ShortenRequest {
+  password?: string | null;
   url: string;
   custom_id?: string | null;
   expires_in?: number | null;
 }
 
 export interface ShortenResponse {
+  is_protected: boolean;
   short_id: string;
   short_url: string;
   expires_at: string | null;
@@ -64,7 +66,7 @@ function getHeaders(token?: string): Record<string, string> {
 
 export async function shortenUrl(
   url: string,
-  opts?: { custom_id?: string | null; expires_in?: number | null; token?: string },
+  opts?: { custom_id?: string | null; expires_in?: number | null; password?: string | null; token?: string },
 ): Promise<ShortenResponse> {
   const endpoint = opts?.token ? "/shorten" : "/shorten-anon";
   const res = await fetch(`${API_URL}${endpoint}`, {
@@ -74,6 +76,7 @@ export async function shortenUrl(
       url,
       custom_id: opts?.custom_id || undefined,
       expires_in: opts?.expires_in || undefined,
+      password: opts?.password || undefined,
     }),
   });
   if (!res.ok) {

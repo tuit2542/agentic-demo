@@ -26,6 +26,7 @@ class ShortenRequest(BaseModel):
     url: str
     custom_id: str | None = None
     expires_in: int | None = None
+    password: str | None = None
 
     @field_validator("url")
     @classmethod
@@ -64,11 +65,24 @@ class ShortenRequest(BaseModel):
             raise ValueError("expires_in must be between 1 and 31536000 seconds")
         return v
 
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        v = v.strip()
+        if not v:
+            return None
+        if len(v) < 4 or len(v) > 64:
+            raise ValueError("Password must be 4-64 characters")
+        return v
+
 
 class ShortenResponse(BaseModel):
     short_id: str
     short_url: str
     expires_at: str | None = None
+    is_protected: bool = False
 
 
 class StatsResponse(BaseModel):

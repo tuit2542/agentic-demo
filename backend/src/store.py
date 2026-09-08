@@ -6,6 +6,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
+import bcrypt
+
 from src.models import ClickRecord
 
 
@@ -36,6 +38,7 @@ class UrlStore:
         self._url_owner: dict[str, int] = {}
         self._expires_at: dict[str, str] = {}  # short_id → ISO8601 UTC
         self._created_at: dict[str, str] = {}  # short_id → ISO8601 UTC
+        self._password_hash: dict[str, str] = {}  # short_id → bcrypt hash
 
     def shorten(
         self,
@@ -43,6 +46,7 @@ class UrlStore:
         user_id: int | None = None,
         custom_id: str | None = None,
         expires_in: int | None = None,
+        password: str | None = None,
     ) -> str:
         now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         if custom_id:
@@ -62,7 +66,20 @@ class UrlStore:
         if expires_in is not None:
             exp = datetime.now(timezone.utc) + timedelta(seconds=expires_in)
             self._expires_at[sid] = exp.strftime("%Y-%m-%dT%H:%M:%SZ")
+        if password is not None:
+            self._password_hash[sid] = bcrypt.hashpw(
+                password.encode(), bcrypt.gensalt()
+            ).decode()
         return sid
+
+    def is_protected(self, sid: str) -> bool:
+        return sid in self._password_hash
+
+    def verify_password(self, sid: str, password: str) -> bool:
+        stored_hash = self._password_hash.get(sid)
+        if stored_hash is None:
+            return False
+        return bcrypt.checkpw(password.encode(), stored_hash.encode())
 
     def is_expired(self, sid: str) -> bool:
         exp = self._expires_at.get(sid)
@@ -171,6 +188,7 @@ class UrlStore:
         self._expires_at.pop(sid, None)
         self._created_at.pop(sid, None)
         self._url_owner.pop(sid, None)
+        self._password_hash.pop(sid, None)
         return True
 
 
