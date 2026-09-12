@@ -143,6 +143,7 @@ def create_app() -> FastAPI:
                 user_id=user_id,
                 custom_id=req.custom_id,
                 expires_in=req.expires_in,
+                password=req.password,
             )
         except ValueError as e:
             if "already taken" in str(e):
@@ -154,7 +155,10 @@ def create_app() -> FastAPI:
         return JSONResponse(
             status_code=201,
             content=ShortenResponse(
-                short_id=sid, short_url=f"{base}/{sid}", expires_at=expires_at
+                short_id=sid,
+                short_url=f"{base}/{sid}",
+                expires_at=expires_at,
+                is_protected=store.is_protected(sid),
             ).model_dump(),
             headers=headers,
         )
@@ -172,7 +176,10 @@ def create_app() -> FastAPI:
             )
         try:
             sid = store.shorten(
-                str(req.url), custom_id=req.custom_id, expires_in=req.expires_in
+                str(req.url),
+                custom_id=req.custom_id,
+                expires_in=req.expires_in,
+                password=req.password,
             )
         except ValueError as e:
             if "already taken" in str(e):
@@ -184,7 +191,10 @@ def create_app() -> FastAPI:
         return JSONResponse(
             status_code=201,
             content=ShortenResponse(
-                short_id=sid, short_url=f"{base}/{sid}", expires_at=expires_at
+                short_id=sid,
+                short_url=f"{base}/{sid}",
+                expires_at=expires_at,
+                is_protected=store.is_protected(sid),
             ).model_dump(),
             headers=headers,
         )
@@ -248,6 +258,17 @@ def create_app() -> FastAPI:
                 content={"detail": "Rate limit exceeded. Try again in 60 seconds."},
                 headers=headers,
             )
+        # Check password protection first
+        if store.peek(sid) is None:
+            raise HTTPException(status_code=404, detail="Short URL not found")
+        if store.is_protected(sid):
+            password = request.query_params.get("password") or request.headers.get(
+                "X-Link-Password"
+            )
+            if not password:
+                raise HTTPException(status_code=401, detail="Password required")
+            if not store.verify_password(sid, password):
+                raise HTTPException(status_code=401, detail="Invalid password")
         # Check expiry before resolve
         if store.is_expired(sid):
             raise HTTPException(status_code=410, detail="Short URL has expired")

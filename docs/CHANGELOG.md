@@ -8,7 +8,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 ## [Unreleased]
 
 ### Added
-- Frontend: login page + custom ID input + TTL picker (v1.0.0 target)
+- Password-protected links: POST /shorten + /shorten-anon accept `password` field
+- Password-protected links: GET /{sid} validates `password` query param or `X-Link-Password` header (401 if missing/invalid)
+- Password-protected links: `is_protected` boolean in ShortenResponse + is_protected field in stats
+- Backend: UrlStore.shorten() + SqliteStore.shorten() accept `password` arg; `verify_password(sid, password)` + `is_protected(sid)`
+- Frontend: Home page adds optional password input for creating protected links
+- Frontend: Unlock page at `/p/{sid}` — password form + redirect on success
+- Frontend: 2 new tests for unlock page flow
 - Analytics dashboard: GET /analytics/{sid} — referrer breakdown, clicks_by_hour, recent_clicks
 - Analytics: ReferrerStat, AnalyticsResponse Pydantic models
 - Analytics: UrlStore.get_analytics() aggregation method
@@ -119,10 +125,3 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 ---
 
-*Last updated: 2026-09-01*- Frontend analytics dashboard UI: page + 3 components (ClicksByHourChart, TopReferrers, RecentClicks)
-- Frontend: 37 tests passing (7 test files), ESLint clean, tsc clean
-- Backend: UserUrlItem, UserUrlsResponse Pydantic models
-- Backend: UrlStore.list_by_owner(user_id) + SqliteStore.list_by_owner()
-- Backend: GET /my/urls — user's own URLs with clicks/expiry
-- Frontend: getUserUrls() API client function
-- Frontend: /dashboard page with list + delete

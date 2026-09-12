@@ -4,7 +4,7 @@
 
 ---
 
-## Current State (2026-09-07)
+## Current State (2026-09-08)
 
 ### Project
 - **Repo:** https://github.com/tuit2542/agentic-demo
@@ -14,7 +14,7 @@
 - **Branching:** feat/* → dev → qa → sit → uat → main (human-gated promotion)
 - **Tags:** v0.1.0 → v1.0.0
 
-### What's Done (v1.0.0 — 145 backend + 45 frontend tests)
+### What's Done (v1.0.0 — 155 backend + 47 frontend tests)
 
 | # | Feature | Status |
 |---|---------|--------|
@@ -39,11 +39,12 @@
 | 19 | Analytics Dashboard UI: /analytics/[sid] page + 3 components | ✅ |
 | 20 | My Links API: GET /my/urls (owner-only, clicks, expiry) | ✅ |
 | 21 | My Links Dashboard UI: /dashboard page with list + delete | ✅ |
+| 22 | Password-protected links (password field, bcrypt, 401 on redirect, unlock page at /p/{sid}) | ✅ |
 
 ### Pending
 | # | Feature | Priority | Spec |
 |---|---------|----------|------|
-| 1 | Frontend: login + custom ID + TTL picker | 🟡 Medium | ยังไม่มี spec |
+| 1 | Frontend: login + custom ID + TTL picker | ✅ Done (integrated in home page) | spec in .hermes/specs/password-protected-links.md |
 | 2 | JWT refresh token | 🟢 Low | ยังไม่มี spec |
 | 3 | URL bulk import | 🟢 Low | ยังไม่มี spec |
 
@@ -56,7 +57,7 @@
 docker-compose up --build
 
 # Manual
-cd backend && python -m uvicorn src.app:create_app --factory --reload
+cd backend && python -m uvicorn src.app:create_app --factory --reload  # or: uv run uvicorn src.app:create_app --factory
 cd frontend && npm run dev
 ```
 
@@ -92,10 +93,10 @@ curl -X POST http://localhost:8000/shorten \
 | Lint | `ruff check src/ tests/` | ✅ |
 | Format | `ruff format --check src/ tests/` | ✅ |
 | Type check | `mypy src/` | ✅ |
-| Tests | `pytest tests/ -q` | ✅ (145 passed) |
+| Tests | `pytest tests/ -q` | ✅ (155 passed) |
 | Frontend lint | `npm run lint` | ✅ |
 | Frontend type | `npx tsc --noEmit` | ✅ |
-| Frontend test | `npm run test` | ✅ (45 passed) |
+| Frontend test | `npm run test` | ✅ (47 passed) |
 
 ---
 
@@ -129,4 +130,4 @@ main (prod) ← 2 approvals
 
 ---
 
-*Last updated: 2026-09-07*
+*Last updated: 2026-09-08*

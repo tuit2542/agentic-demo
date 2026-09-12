@@ -25,7 +25,9 @@ This is **FastAPI's default `HTTPException` format**. No custom error wrapper ne
 | `200` | Success (GET, stats) | `GET /stats/{sid}` |
 | `201` | Created (POST) | `POST /shorten` |
 | `307` | Redirect | `GET /{sid}` → redirect to URL |
+| `401` | Unauthorized (password) | Missing/invalid `X-Link-Password` or `?password=` for protected link |
 | `404` | Resource not found | Unknown short_id |
+| `410` | Gone (expired) | Short URL past `expires_at` |
 | `422` | Validation error | Invalid URL format, missing body |
 | `500` | Server error | Unexpected failure |
 
@@ -77,7 +79,17 @@ if store.exists(url):
     )
 ```
 
-### 4. Rate Limited (429)
+### 4. Password Required (401)
+```python
+# Protected links: check query param or header
+password = request.query_params.get("password") or request.headers.get("X-Link-Password")
+if not password:
+    raise HTTPException(status_code=401, detail="Password required")
+if not store.verify_password(sid, password):
+    raise HTTPException(status_code=401, detail="Invalid password")
+```
+
+### 5. Rate Limited (429)
 ```python
 # When implementing rate limiting
 raise HTTPException(
@@ -120,4 +132,4 @@ async def test_invalid_url_returns_422():
 
 ---
 
-*Last updated: 2026-08-28*
+*Last updated: 2026-09-08 — added 401/410 for password-protected + expiration*
